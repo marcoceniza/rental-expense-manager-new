@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Transaction extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'category_id',
+        'type',
+        'amount',
+        'transaction_date',
+        'description',
+        'remarks',
+        'recurring_id',
+        'is_recurring_generated',
+    ];
+
+    /**
+     * Attribute casting
+     */
+    protected $casts = [
+        'transaction_date' => 'date',
+        'is_recurring_generated' => 'boolean',
+    ];
+
+    /**
+     * Relationships
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class)->withTrashed();
+    }
+
+    /**
+     * Scopes
+     */
+    public function scopeDashboardVisible($query)
+    {
+        return $query->whereHas('category', function ($q) {
+            $q->where('is_tuition', false)
+                ->where('is_other', false);
+        });
+    }
+
+    public function scopeTuition($query)
+    {
+        return $query->whereHas('category', fn ($q) =>
+            $q->where('is_tuition', true)
+        );
+    }
+
+    public function scopeOther($query)
+    {
+        return $query->whereHas('category', fn ($q) =>
+            $q->where('is_other', true)
+        );
+    }
+}
