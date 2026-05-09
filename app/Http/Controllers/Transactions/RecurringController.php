@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Transactions;
 
 use App\Http\Controllers\Controller;
-use App\Models\Recurring;
 use App\Http\Requests\Transactions\StoreRecurringRequest;
+use App\Models\Recurring;
 
 class RecurringController extends Controller
 {
@@ -15,7 +15,7 @@ class RecurringController extends Controller
     {
         Recurring::create($request->validated());
 
-        return redirect('/recurring')
+        return redirect()->route('recurring.index')
             ->with('success', 'Recurring created successfully.');
     }
 
@@ -26,7 +26,7 @@ class RecurringController extends Controller
     {
         $recurring->update($request->validated());
 
-        return redirect('/recurring')
+        return redirect()->route('recurring.index')
             ->with('success', 'Recurring updated successfully.');
     }
 
@@ -37,7 +37,7 @@ class RecurringController extends Controller
     {
         $recurring->delete();
 
-        return redirect('/recurring')
+        return redirect()->route('recurring.index')
             ->with('success', 'Recurring deleted successfully.');
     }
 }

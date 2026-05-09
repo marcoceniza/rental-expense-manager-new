@@ -1,163 +1,84 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use App\Http\Controllers\Transactions\ReportController;
-use App\Http\Controllers\Transactions\TransactionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Transactions\CategoryController;
 use App\Http\Controllers\Transactions\RecurringController;
-use App\Models\Category;
+use App\Http\Controllers\Transactions\ReportController;
+use App\Http\Controllers\Transactions\TransactionController;
+use App\Models\Recurring;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
-| AUTHENTICATED PAGES (INERTIA)
+| USER ROUTES
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', [ReportController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'user'])->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | REPORT PAGES
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/reports/summary', fn () => Inertia::render('Reports/Summary'));
-    Route::get('/reports/by-category', fn () => Inertia::render('Reports/ByCategory'));
-    Route::get('/reports/annual', fn () => Inertia::render('Reports/Annual'));
-    Route::get('/reports/category-summary', fn () => Inertia::render('Reports/CategorySummary'));
-    Route::get('/reports/charity-year', fn () => Inertia::render('Reports/CharityYear'));
-    Route::get('/reports', fn () =>
-        Inertia::render('transactions/Reports', [
-            'annualReport' => [],
-            'categoryReport' => [],
-            'year' => now()->year,
-            'user' => auth()->user(),
-        ])
-    );
+    Route::get('/dashboard', [ReportController::class, 'userDashboard'])
+        ->name('dashboard');
 
-    /*
-    |--------------------------------------------------------------------------
-    | TRANSACTIONS (VIEW PAGE)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::get('/reports', [ReportController::class, 'userAnnualReport'])
+        ->name('reports');
 
-    /*
-    |--------------------------------------------------------------------------
-    | CATEGORIES (VIEW PAGE)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/categories', [CategoryController::class, 'index']);
-    Route::get('/charity', fn () =>
-        Inertia::render('transactions/Charity', [
-            'charityStats' => [
-                'expense' => 0,
-                'transactions' => [],
-            ],
-            'categories' => Category::all(),
-            'year' => now()->year,
-        ])
-    );
+    Route::get('/transactions', [TransactionController::class, 'userTransactions'])
+        ->name('transactions.user');
+
+    Route::get('/charity', [ReportController::class, 'userCharityReport'])
+        ->name('charity');
+
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| ADMIN ONLY (CRUD + MANAGEMENT)
+| ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'admin'])->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | CATEGORY CRUD (REPLACES apiResource)
-    |--------------------------------------------------------------------------
-    */
+Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
 
-    Route::get('/categories/create', fn () =>
-        Inertia::render('Categories/Create')
-    );
+    Route::get('/dashboard', [ReportController::class, 'index'])
+        ->name('admin.dashboard');
 
-    Route::get('/categories/{category}/edit', fn ($category) =>
-        Inertia::render('Categories/Edit', [
-            'category' => $category
-        ])
-    );
+    Route::get('/charity', [ReportController::class, 'charityIndex'])
+        ->name('admin.charity');
+    Route::get('/others', [ReportController::class, 'otherIndex'])
+        ->name('admin.others');
+    Route::get('/reports', [ReportController::class, 'annualReport'])
+        ->name('admin.reports');
 
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::put('/categories/{category}', [CategoryController::class, 'update']);
-    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
-    Route::patch('/categories/{id}/restore', [CategoryController::class, 'restore']);
-    Route::delete('/categories/{id}/force-delete', [CategoryController::class, 'forceDelete']);
+    Route::resource('categories', CategoryController::class);
 
+    Route::resource('transactions', TransactionController::class);
 
-    /*
-    |--------------------------------------------------------------------------
-    | TRANSACTION CRUD
-    |--------------------------------------------------------------------------
-    */
+    Route::prefix('categories')->group(function () {
+        Route::patch('{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+        Route::delete('{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force-delete');
+    });
 
-    Route::get('/transactions/trashed', fn () =>
-        Inertia::render('Transactions/Trashed')
-    );
+    Route::prefix('transactions')->group(function () {
+        Route::get('trashed', fn () => Inertia::render('Transactions/Trashed'));
 
-    Route::get('/transactions/{transaction}/edit', fn ($transaction) =>
-        Inertia::render('Transactions/Edit', [
-            'transaction' => $transaction
-        ])
-    );
+        Route::patch('{id}/restore', [TransactionController::class, 'restore'])->name('transactions.restore');
 
-    Route::post('/transactions', [TransactionController::class, 'store']);
-    Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
-    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
-    Route::patch('/transactions/{id}/restore', [TransactionController::class, 'restore']);
-    Route::delete('/transactions/{id}/force-delete', [TransactionController::class, 'forceDelete']);
+        Route::delete('{id}/force-delete', [TransactionController::class, 'forceDelete'])->name('transactions.force-delete');
+    });
 
+    Route::get('/recurring', fn () => Inertia::render('transactions/Recurring', [
+        'recurringTransactions' => Recurring::with('category')->get(),
+    ]))->name('recurring.index');
 
-    /*
-    |--------------------------------------------------------------------------
-    | RECURRING CRUD
-    |--------------------------------------------------------------------------
-    */
+    Route::post('/recurring', [RecurringController::class, 'store'])->name('recurring.store');
 
-    Route::get('/recurring', fn () =>
-        Inertia::render('transactions/Recurring', [
-            'recurringTransactions' => \App\Models\Recurring::with('category')->get()
-        ])
-    );
+    Route::put('/recurring/{recurring}', [RecurringController::class, 'update'])->name('recurring.update');
 
-    Route::post('/recurring', [RecurringController::class, 'store']);
-    Route::put('/recurring/{recurring}', [RecurringController::class, 'update']);
-    Route::delete('/recurring/{recurring}', [RecurringController::class, 'destroy']);
+    Route::delete('/recurring/{recurring}', [RecurringController::class, 'destroy'])->name('recurring.destroy');
 
+    Route::get('/register', [RegisteredUserController::class, 'create'])
+        ->name('register');
 
-    /*
-    |--------------------------------------------------------------------------
-    | REPORT ADMIN PAGES
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/reports/other-year', fn () =>
-        Inertia::render('Reports/OtherYear')
-    );
+    Route::post('/register', [RegisteredUserController::class, 'store']);
 
-    Route::get('/others', fn () =>
-        Inertia::render('transactions/Others', [
-            'otherStats' => [
-                'expense' => 0,
-                'transactions' => [],
-            ],
-            'categories' => Category::all(),
-            'year' => now()->year,
-        ])
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | USER MANAGEMENT
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/users/create', fn () =>
-        Inertia::render('Users/Create')
-    );
 });

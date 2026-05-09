@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Transactions;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Http\Requests\Transactions\StoreCategoryRequest;
 use App\Http\Requests\Transactions\UpdateCategoryRequest;
+use App\Models\Category;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
@@ -16,7 +16,7 @@ class CategoryController extends Controller
     public function index()
     {
         return Inertia::render('transactions/Categories', [
-            'categories' => Category::latest()->get()
+            'categories' => Category::withCount('transactions')->latest()->get(),
         ]);
     }
 
@@ -27,7 +27,7 @@ class CategoryController extends Controller
     {
         Category::create($request->validated());
 
-        return redirect('/categories')
+        return redirect()->route('categories.index')
             ->with('success', 'Category created successfully.');
     }
 
@@ -38,7 +38,7 @@ class CategoryController extends Controller
     {
         $category->update($request->validated());
 
-        return redirect('/categories')
+        return redirect()->route('categories.index')
             ->with('success', 'Category updated successfully.');
     }
 
@@ -48,13 +48,13 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         if ($category->transactions()->exists()) {
-            return redirect('/categories')
+            return redirect()->route('categories.index')
                 ->with('error', 'Category is in use and cannot be deleted.');
         }
 
         $category->delete();
 
-        return redirect('/categories')
+        return redirect()->route('categories.index')
             ->with('success', 'Category deleted successfully.');
     }
 
@@ -66,7 +66,7 @@ class CategoryController extends Controller
         $category = Category::withTrashed()->findOrFail($id);
         $category->restore();
 
-        return redirect('/categories')
+        return redirect()->route('categories.index')
             ->with('success', 'Category restored successfully.');
     }
 
@@ -78,13 +78,13 @@ class CategoryController extends Controller
         $category = Category::withTrashed()->findOrFail($id);
 
         if ($category->transactions()->exists()) {
-            return redirect('/categories')
+            return redirect()->route('categories.index')
                 ->with('error', 'Category has transactions.');
         }
 
         $category->forceDelete();
 
-        return redirect('/categories')
+        return redirect()->route('categories.index')
             ->with('success', 'Category permanently deleted.');
     }
 }

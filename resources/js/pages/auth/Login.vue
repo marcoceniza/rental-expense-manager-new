@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
+// import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+// import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle } from 'lucide-vue-next';
+import { LoaderCircle, Eye, EyeOff } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 defineProps<{
     status?: string;
-    canResetPassword: boolean;
+    // canResetPassword: boolean;
 }>();
+
+const showPassword = ref(false);
 
 const form = useForm({
     email: '',
@@ -44,7 +47,7 @@ const submit = () => {
                         type="email"
                         required
                         autofocus
-                        tabindex="1"
+                        :tabindex="1"
                         autocomplete="email"
                         v-model="form.email"
                         placeholder="email@example.com"
@@ -55,37 +58,43 @@ const submit = () => {
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
                         <Label for="password">Password</Label>
-                        <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm" tabindex="5"> Forgot password? </TextLink>
+                        <!-- <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm" :tabindex="5"> Forgot password? </TextLink> -->
                     </div>
-                    <Input
-                        id="password"
-                        type="password"
-                        required
-                        tabindex="2"
-                        autocomplete="current-password"
-                        v-model="form.password"
-                        placeholder="Password"
-                    />
+                    <div class="flex items-center justify-end">
+                        <Input
+                            id="password"
+                            :type="showPassword ? 'text' : 'password'"
+                            required
+                            :tabindex="2"
+                            autocomplete="current-password"
+                            v-model="form.password"
+                            placeholder="Password"
+                        />
+                        <button type="button" class="text-muted-foreground absolute mr-[10px]" @click="showPassword = !showPassword">
+                            <Eye v-if="!showPassword" class="h-4 w-4" />
+                            <EyeOff v-else class="h-4 w-4" />
+                        </button>
+                    </div>
                     <InputError :message="form.errors.password" />
                 </div>
 
-                <div class="flex items-center justify-between" tabindex="3">
+                <!-- <div class="flex items-center justify-between">
                     <Label for="remember" class="flex items-center space-x-3">
-                        <Checkbox id="remember" v-model:checked="form.remember" tabindex="4" />
+                        <Checkbox id="remember" v-model:checked="form.remember" :tabindex="3" />
                         <span>Remember me</span>
                     </Label>
-                </div>
+                </div> -->
 
-                <Button type="submit" class="mt-4 w-full" tabindex="4" :disabled="form.processing">
+                <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Log in
                 </Button>
             </div>
 
-            <div class="text-center text-sm text-muted-foreground">
+            <!-- <div class="text-center text-sm text-muted-foreground">
                 Don't have an account?
                 <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
-            </div>
+            </div> -->
         </form>
     </AuthBase>
 </template>

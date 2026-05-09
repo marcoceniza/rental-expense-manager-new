@@ -1,191 +1,177 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { useForm } from '@inertiajs/vue3'
 import { format, parseISO } from 'date-fns'
-import { Plus, Pencil, Trash2, ReceiptText } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, ReceiptText, Filter, Search } from 'lucide-vue-next'
 import AppLayout from '@/layouts/AppLayout.vue'
+import TransactionModal from '@/components/TransactionModal.vue'
+import type { Transaction, Category, Auth } from '@/types'
+import ConfirmDelete from '@/components/ConfirmDelete.vue'
+import BasePagination from '@/components/base/BasePagination.vue'
+import TransactionTrashModal from '@/components/TransactionTrashModal.vue'
 
 defineOptions({
     layout: AppLayout,
 })
 
-/**
- * INERTIA PROPS
- */
-const page = usePage()
+interface PaginatedData<T> {
+    data: T[]
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    links: Array<{
+        url: string | null
+        label: string
+        active: boolean
+    }>
+}
 
-const transactions = computed(() => page.props.transactions.data || [])
-const pagination = computed(() => page.props.transactions)
-const categories = computed(() => page.props.categories || [])
-const trashed = computed(() => page.props.trashed || [])
-const auth = computed(() => page.props.auth)
+const props = defineProps<{
+    transactions: PaginatedData<Transaction>
+    categories: Category[]
+    trashed: PaginatedData<Transaction>
+    trashedCount: number
+    auth: Auth
+}>()
 
-/**
- * STATE
- */
 const searchQuery = ref('')
 const typeFilter = ref('all')
-
 const showModal = ref(false)
 const showTrashModal = ref(false)
-const isSubmitting = ref(false)
+const editingId = ref<number | null>(null)
 
-const editingId = ref(null)
-
-const confirmDelete = ref({
-	show: false,
-	id: null,
-	name: ''
+const form = useForm({
+    transaction_date: format(new Date(), 'yyyy-MM-dd'),
+    type: 'income',
+    category_id: '',
+    description: '',
+    amount: 0,
+    remarks: ''
 })
 
-const formData = ref({
-	transaction_date: format(new Date(), 'yyyy-MM-dd'),
-	type: 'income',
-	category_id: '',
-	description: '',
-	amount: 0,
-	remarks: ''
+const confirmDelete = ref<{
+    show: boolean
+    id: number | null
+    name: string
+}>({
+    show: false,
+    id: null,
+    name: ''
 })
 
-/**
- * FILTERS
- */
 const filteredTransactions = computed(() => {
-	return transactions.value.filter(t => {
-		const search = searchQuery.value.toLowerCase()
+    return props.transactions.data.filter((t: Transaction) => {
+        const search = searchQuery.value.toLowerCase()
 
-		const fields = [
-			t.description,
-			t.category?.name,
-			t.type,
-			t.amount,
-			new Date(t.transaction_date).toLocaleDateString()
-		]
+        const fields = [
+            t.description,
+            t.category?.name,
+            t.type,
+            t.amount,
+            new Date(t.transaction_date).toLocaleDateString()
+        ]
 
-		const matchesSearch = fields.some(field =>
-			String(field ?? '').toLowerCase().includes(search)
-		)
+        const matchesSearch = fields.some(field =>
+            String(field ?? '').toLowerCase().includes(search)
+        )
 
-		const matchesType =
-			typeFilter.value === 'all' || t.type === typeFilter.value
+        const matchesType =
+            typeFilter.value === 'all' || t.type === typeFilter.value
 
-		const excludeSpecial =
-			t.category?.is_tuition !== true &&
-			t.category?.is_other !== true
+        const excludeSpecial =
+            t.category?.is_tuition !== true &&
+            t.category?.is_other !== true
 
-		return matchesSearch && matchesType && excludeSpecial
-	})
+        return matchesSearch && matchesType && excludeSpecial
+    })
 })
 
 const filteredCategories = computed(() =>
-	categories.value.filter(c => c.type === formData.value.type)
+    props.categories.filter((c: Category) => c.type === form.type)
 )
 
-/**
- * ACTIONS
- */
-const openModal = (t = null) => {
-	if (t) {
-		editingId.value = t.id
-		formData.value = {
-			...t,
-			transaction_date: format(parseISO(t.transaction_date), 'yyyy-MM-dd')
-		}
-	} else {
-		editingId.value = null
-		formData.value = {
-			transaction_date: format(new Date(), 'yyyy-MM-dd'),
-			type: 'income',
-			category_id: '',
-			description: '',
-			amount: 0,
-			remarks: ''
-		}
-	}
+const categoryTypes = ['income', 'expense', 'liability']
 
-	showModal.value = true
+const openModal = (t: any = null) => {
+    if (t) {
+        editingId.value = t.id
+        form.clearErrors()
+        form.defaults({
+            ...t,
+            transaction_date: format(parseISO(t.transaction_date), 'yyyy-MM-dd')
+        })
+        form.reset()
+    } else {
+        editingId.value = null
+        form.clearErrors()
+        form.reset()
+    }
+
+    showModal.value = true
 }
 
 const closeModal = () => {
-	showModal.value = false
+    showModal.value = false
 }
 
-/**
- * CREATE / UPDATE
- */
 const handleSubmit = () => {
-	if (isSubmitting.value) return
-	isSubmitting.value = true
-
-	if (editingId.value) {
-		router.put(`/transactions/${editingId.value}`, formData.value, {
-			preserveScroll: true,
-			onFinish: () => {
-				isSubmitting.value = false
-				closeModal()
-			}
-		})
-	} else {
-		router.post('/transactions', formData.value, {
-			preserveScroll: true,
-			onFinish: () => {
-				isSubmitting.value = false
-				closeModal()
-			}
-		})
-	}
+    if (editingId.value) {
+        form.put(route('transactions.update', { id: editingId.value }), {
+            preserveScroll: true,
+            onSuccess: () => closeModal()
+        })
+    } else {
+        form.post(route('transactions.store'), {
+            preserveScroll: true,
+            onSuccess: () => closeModal()
+        })
+    }
 }
 
-/**
- * DELETE
- */
-const confirmDeleteHandler = (id, name) => {
-	confirmDelete.value = { show: true, id, name }
+const confirmDeleteHandler = (id: number, name: string) => {
+    confirmDelete.value = {
+        show: true,
+        id,
+        name
+    }
 }
 
 const deleteTransaction = () => {
-	router.delete(`/transactions/${confirmDelete.value.id}`, {
-		preserveScroll: true,
-		onFinish: () => {
-			confirmDelete.value.show = false
-		}
-	})
+    if (!confirmDelete.value.id) return
+
+    form.delete(route('transactions.destroy', {
+        id: confirmDelete.value.id
+    }), {
+        preserveScroll: true,
+        onFinish: () => {
+            confirmDelete.value.show = false
+        }
+    })
 }
 
-/**
- * TRASH ACTIONS
- */
-const restoreTransaction = (id) => {
-	router.post(`/transactions/${id}/restore`, {}, { preserveScroll: true })
+const restoreTransaction = (id: number) => {
+    form.patch(route('transactions.restore', { id }), {
+        preserveScroll: true
+    })
 }
 
-const deletePermanent = (id) => {
-	router.delete(`/transactions/${id}/force-delete`, { preserveScroll: true })
+const deletePermanent = (id: number) => {
+    form.delete(route('transactions.force-delete', { id }), {
+        preserveScroll: true
+    })
 }
 
-/**
- * PAGINATION
- */
-const goToPage = (url) => {
-	if (!url) return
-	router.visit(url, { preserveScroll: true })
-}
-
-/**
- * FORMAT
- */
-const formatCurrency = (amount) => {
-	return new Intl.NumberFormat('en-PH', {
-		style: 'currency',
-		currency: 'PHP'
-	}).format(amount)
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-PH', {
+        style: 'currency',
+        currency: 'PHP'
+    }).format(amount)
 }
 </script>
 
 <template>
 	<div class="space-y-8">
-
-		<!-- HEADER -->
 		<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
 			<div>
 				<h2 class="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 max-sm:text-2xl">
@@ -201,6 +187,7 @@ const formatCurrency = (amount) => {
 					class="relative p-3 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 rounded-xl transition-all shadow-sm group cursor-pointer"
 				>
 					<Trash2 class="w-5 h-5 group-hover:scale-110 transition-transform" />
+					<span v-show="props.trashedCount > 0" class="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">{{ props.trashedCount }}</span>
 				</button>
 
 				<button
@@ -213,7 +200,6 @@ const formatCurrency = (amount) => {
 			</div>
 		</div>
 
-		<!-- FILTER -->
 		<div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
 			<div class="relative flex-1 w-full">
 				<Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -239,7 +225,6 @@ const formatCurrency = (amount) => {
 			</div>
 		</div>
 
-		<!-- TABLE -->
 		<div class="bg-white rounded-2xl shadow-sm border border-slate-200">
 			<div class="overflow-x-auto">
 				<table class="w-full text-left">
@@ -248,7 +233,7 @@ const formatCurrency = (amount) => {
 							<th class="px-6 py-4">Date</th>
 							<th class="px-6 py-4">Description</th>
 							<th class="px-6 py-4">Category</th>
-							<th class="px-6 py-4 text-right">Amount</th>
+							<th class="px-6 py-4">Amount</th>
 							<th v-if="auth.user?.user_type === 'admin'" class="px-6 py-4 text-center">Actions</th>
 						</tr>
 					</thead>
@@ -271,23 +256,25 @@ const formatCurrency = (amount) => {
 									{{ format(parseISO(t.transaction_date), 'MMM dd, yyyy') }}
 								</span>
 							</td>
-
 							<td class="px-6 py-4">
 								<p class="text-sm font-medium text-slate-900">{{ t.description }}</p>
+								<p v-if="t.remarks" class="text-xs text-slate-400 mt-0.5">{{ t.remarks }}</p>
 							</td>
-
 							<td class="px-6 py-4">
-								<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
-									{{ categories.find(c => c.id == t.category_id)?.name || 'Uncategorized' }}
+								<span class="px-2.5 py-1 rounded-full text-xs font-semibold" :class="{
+									'bg-blue-50 text-blue-600': t.type === 'income',
+									'bg-red-50 text-red-600': t.type === 'expense',
+									'bg-amber-50 text-amber-600': t.type === 'liability'
+								}">
+									{{props.categories.find(c => c.id === Number(t.category_id))?.name || 'Uncategorized'}}
 								</span>
 							</td>
-
-							<td class="px-6 py-4 text-right">
-								<span class="text-sm font-bold text-slate-900">
-									{{ formatCurrency(t.amount) }}
+							<td class="px-6 py-4">
+								<span class="text-sm font-bold"
+									:class="t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'">
+									{{ t.type === 'income' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
 								</span>
 							</td>
-
 							<td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">
 								<div class="flex items-center justify-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
 									<button
@@ -308,66 +295,43 @@ const formatCurrency = (amount) => {
 						</tr>
 					</tbody>
 				</table>
+				<BasePagination
+					v-if="transactions.last_page > 1"
+					:pagination="transactions"
+				/>
 			</div>
 		</div>
 
-		<!-- PAGINATION -->
-		<div class="flex gap-2">
-			<button
-				v-for="link in pagination.links"
-				:key="link.label"
-				v-html="link.label"
-				@click="goToPage(link.url)"
-				class="px-3 py-1 border"
-				:class="{ 'bg-blue-500 text-white': link.active }"
-			/>
-		</div>
+		<TransactionModal
+			v-model:isOpen="showModal"
+			:editingId="editingId"
+			:formData="form"
+			:categoryTypes="categoryTypes"
+			:filteredCategories="filteredCategories"
+			:loading="form.processing"
+			@submit="handleSubmit"
+			@close="closeModal"
+		/>
 
-		<!-- MODAL -->
-		<div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-			<div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 space-y-4">
-				<input v-model="formData.description" placeholder="Description" class="w-full px-4 py-3 bg-slate-50 rounded-xl" />
-				<input v-model.number="formData.amount" type="number" class="w-full px-4 py-3 bg-slate-50 rounded-xl" />
+		<ConfirmDelete
+			v-if="confirmDelete.show"
+			:isOpen="true"
+			title="Delete Transaction"
+			:message="confirmDelete.name"
+			:loading="form.processing"
+			actionName="transaction"
+			@confirm="deleteTransaction"
+			@close="confirmDelete.show = false"
+		/>
 
-				<select v-model="formData.category_id" class="w-full px-4 py-3 bg-slate-50 rounded-xl">
-					<option v-for="c in filteredCategories" :key="c.id" :value="c.id">
-						{{ c.name }}
-					</option>
-				</select>
-
-				<div class="flex gap-2">
-					<button @click="closeModal" class="flex-1 bg-slate-100 py-3 rounded-xl">Cancel</button>
-					<button @click="handleSubmit" class="flex-1 bg-blue-600 text-white py-3 rounded-xl">Save</button>
-				</div>
-			</div>
-		</div>
-
-		<!-- DELETE CONFIRM -->
-		<div v-if="confirmDelete.show" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center">
-			<div class="bg-white p-6 rounded-xl">
-				<p>Delete {{ confirmDelete.name }}?</p>
-				<button @click="deleteTransaction">Yes</button>
-				<button @click="confirmDelete.show = false">Cancel</button>
-			</div>
-		</div>
-
-		<!-- TRASH -->
-		<div v-if="showTrashModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-			<div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6">
-				<h3 class="text-xl font-bold mb-4">Trash Bin</h3>
-
-				<div v-for="t in trashed" :key="t.id" class="flex justify-between border-b py-2">
-					<span>{{ t.description }}</span>
-
-					<div class="flex gap-2">
-						<button @click="restoreTransaction(t.id)">Restore</button>
-						<button @click="deletePermanent(t.id)">Delete</button>
-					</div>
-				</div>
-
-				<button @click="showTrashModal = false" class="mt-4">Close</button>
-			</div>
-		</div>
-
+		<TransactionTrashModal
+			:show="showTrashModal"
+			:trashed="trashed"
+			:trashedCount="trashedCount"
+			:formatCurrency="formatCurrency"
+			:restore="restoreTransaction"
+			:forceDelete="deletePermanent"
+			@close="showTrashModal = false"
+		/>
 	</div>
 </template>

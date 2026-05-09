@@ -1,17 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
-import { format, subMonths, addMonths, parseISO } from 'date-fns'
-import {
-    TrendingUp,
-    TrendingDown,
-    Wallet,
-    ArrowUpRight,
-    ArrowDownRight,
-    CreditCard,
-    LayoutDashboard
-} from 'lucide-vue-next'
-import SpinnerLoader from '@/components/SpinnerLoader.vue'
+import { router } from '@inertiajs/vue3'
+import { subMonths, addMonths, format, parseISO } from 'date-fns'
+import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, LayoutDashboard } from 'lucide-vue-next'
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 
@@ -19,33 +10,52 @@ defineOptions({
     layout: AppLayout,
 })
 
-/**
- * PROPS FROM LARAVEL
- */
-const page = usePage()
+interface Category {
+    id: number
+    name: string
+}
 
-/**
- * STATE
- */
-const currentMonth = ref(new Date(page.props.month))
+interface Transaction {
+    id: number
+    amount: number
+    type: string
+    transaction_date: string
+    category_id: number
+    description: string
+}
+
+const props = defineProps<{
+    transactions: Transaction[]
+    monthlyReport: {
+        income: number
+        expense: number
+        liability: number
+        net: number
+    },
+    categories: Category[],
+    month: string
+}>()
+
+const currentMonth = ref(new Date(`${props.month}-01`))
 const showDateModal = ref(false)
-const pendingDate = ref(null)
+const pendingDate = ref<Date | null>(null)
 
-/**
- * CHANGE MONTH (INERTIA REQUEST)
- */
-const applyChange = (date) => {
-    const formatted = date.toISOString().slice(0, 7) // YYYY-MM
+const applyChange = (date: Date) => {
+    const formatted = date.toISOString().slice(0, 7)
 
-    router.get('/dashboard', { month: formatted }, {
-        preserveState: true,
-        preserveScroll: true,
-    })
+    router.get(
+        '/dashboard',
+        { month: formatted },
+        {
+            preserveState: true,
+            preserveScroll: true,
+        }
+    )
 
     currentMonth.value = date
 }
 
-const handleChange = (newDate) => {
+const handleChange = (newDate: Date) => {
     const currentYear = currentMonth.value.getFullYear()
     const newYear = newDate.getFullYear()
 
@@ -72,12 +82,14 @@ const cancelChange = () => {
     pendingDate.value = null
 }
 
-const prevMonth = () => handleChange(subMonths(currentMonth.value, 1))
-const nextMonth = () => handleChange(addMonths(currentMonth.value, 1))
+const prevMonth = () => {
+    handleChange(subMonths(currentMonth.value, 1))
+}
 
-/**
- * LABEL
- */
+const nextMonth = () => {
+    handleChange(addMonths(currentMonth.value, 1))
+}
+
 const label = computed(() => {
     const date = pendingDate.value || currentMonth.value
 
@@ -87,47 +99,40 @@ const label = computed(() => {
     })
 })
 
-/**
- * FORMAT
- */
-const formatCurrency = (amount) => {
+const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
     }).format(amount)
 }
 
-/**
- * CATEGORY LOOKUP
- */
 const categoryMap = computed(() => {
-    const map = {}
-    page.props.categories.forEach(c => {
-        map[c.id] = c.name
+    const map: Record<number, string> = {}
+
+    props.categories.forEach((category) => {
+        map[category.id] = category.name
     })
+
     return map
 })
 
-/**
- * DONUT CHART
- */
 const monthlyDonutSeries = computed(() => [
-    Number(page.props.monthlyReport?.income) || 0,
-    Number(page.props.monthlyReport?.expense) || 0,
-    Number(page.props.monthlyReport?.liability) || 0,
+    Number(props.monthlyReport?.income) || 0,
+    Number(props.monthlyReport?.expense) || 0,
+    Number(props.monthlyReport?.liability) || 0,
 ])
 
 const monthlyDonutOptions = {
     labels: ['Income', 'Expense', 'Liability'],
     colors: ['#22c55e', '#ef4444', '#f59e0b'],
-    legend: { position: 'bottom' },
+    legend: {
+        position: 'bottom',
+    },
 }
 </script>
 
 <template>
     <div class="space-y-8">
-
-        <!-- HEADER -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 max-sm:text-2xl">
@@ -154,10 +159,7 @@ const monthlyDonutOptions = {
             </div>
         </div>
 
-        <!-- CARDS -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-            <!-- INCOME -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-200 transition-colors group">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -168,11 +170,10 @@ const monthlyDonutOptions = {
                     Total Income
                 </p>
                 <h3 class="text-2xl font-bold text-slate-900 mt-1">
-                    {{ formatCurrency(page.props.monthlyReport?.income || 0) }}
+                    {{ formatCurrency(props.monthlyReport?.income || 0) }}
                 </h3>
             </div>
 
-            <!-- EXPENSE -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-200 transition-colors group">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-colors">
@@ -183,11 +184,10 @@ const monthlyDonutOptions = {
                     Total Expenses
                 </p>
                 <h3 class="text-2xl font-bold text-slate-900 mt-1">
-                    {{ formatCurrency(page.props.monthlyReport?.expense || 0) }}
+                    {{ formatCurrency(props.monthlyReport?.expense || 0) }}
                 </h3>
             </div>
 
-            <!-- LIABILITY -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-200 transition-colors group">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
@@ -198,11 +198,10 @@ const monthlyDonutOptions = {
                     Liabilities
                 </p>
                 <h3 class="text-2xl font-bold text-slate-900 mt-1">
-                    {{ formatCurrency(page.props.monthlyReport?.liability || 0) }}
+                    {{ formatCurrency(props.monthlyReport?.liability || 0) }}
                 </h3>
             </div>
 
-            <!-- NET -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-emerald-200 transition-colors group">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -214,18 +213,15 @@ const monthlyDonutOptions = {
                 </p>
                 <h3
                     class="text-2xl font-bold text-slate-900 mt-1"
-                    :class="page.props.monthlyReport?.net >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                    :class="props.monthlyReport?.net >= 0 ? 'text-emerald-600' : 'text-red-600'"
                 >
-                    {{ formatCurrency(page.props.monthlyReport?.net || 0) }}
+                    {{ formatCurrency(props.monthlyReport?.net || 0) }}
                 </h3>
             </div>
 
         </div>
 
-        <!-- CHART + TABLE -->
         <div class="flex flex-col lg:flex-row gap-6">
-
-            <!-- CHART -->
             <div class="lg:w-1/4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
                 <h3 class="xl:text-xl lg:mt-2.5 lg:text-center text-lg font-bold text-slate-900 mb-4 w-full">
                     Monthly Overview
@@ -239,7 +235,6 @@ const monthlyDonutOptions = {
                 />
             </div>
 
-            <!-- TABLE -->
             <div class="lg:w-4/5 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-slate-900">Recent Activity</h3>
@@ -257,19 +252,19 @@ const monthlyDonutOptions = {
                         </thead>
 
                         <tbody class="divide-y divide-slate-100">
-                            <tr v-if="(page.props.transactions || []).length === 0">
+                            <tr v-if="(props.transactions || []).length === 0">
                                 <td colspan="4" class="px-6 py-12 text-center text-slate-400 italic">
                                     No transactions recorded yet.
                                 </td>
                             </tr>
 
                             <tr
-                                v-for="t in (page.props.transactions || []).slice(0, 5)"
+                                v-for="t in (props.transactions || []).slice(0, 5)"
                                 :key="t.id"
                                 class="hover:bg-slate-50 transition-colors"
                             >
                                 <td class="px-6 py-4 text-sm text-slate-600">
-                                    {{ t.transaction_date }}
+                                    {{ format(parseISO(t.transaction_date), 'MMM dd, yyyy') }}
                                 </td>
 
                                 <td class="px-6 py-4">
@@ -296,12 +291,9 @@ const monthlyDonutOptions = {
                     </table>
                 </div>
             </div>
-
         </div>
-
     </div>
 
-    <!-- CONFIRM MODAL -->
     <ConfirmDateChangeModal
         :show="showDateModal"
         :label="label"

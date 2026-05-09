@@ -24,12 +24,12 @@ const handleSubmit = () => emit("submit");
 <template>
     <Transition name="fade">
         <div v-if="isOpen"
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            class="fixed top-[-32px] inset-0 z-50 flex min-h-screen items-start sm:items-center justify-center px-4 py-10 sm:p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
             <Transition name="scale">
-                <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-y-auto max-h-[calc(100vh-4rem)]">
 
                     <!-- Header -->
-                    <div class="p-6 border-b border-slate-100 flex justify-between bg-slate-50">
+                    <div class="p-6 border-b border-slate-100 flex justify-between ">
                         <h3 class="text-xl font-bold text-slate-900">
                             {{ editingId ? 'Edit Category' : 'New Category' }}
                         </h3>
@@ -45,7 +45,7 @@ const handleSubmit = () => emit("submit");
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold text-slate-500 uppercase">Category Name</label>
                             <input v-model="formData.name" type="text" placeholder="e.g., Maintenance, Rent, etc."
-                                class="w-full px-4 py-3 bg-slate-50 border rounded-xl" :class="errors?.name?.[0]
+                                class="w-full px-4 py-3 bg-slate-50 text-slate-900 border rounded-xl" :class="errors?.name?.[0]
                                     ? 'border-red-500 focus:ring-2 focus:ring-red-500'
                                     : 'border-slate-200 focus:ring-2 focus:ring-blue-500'" />
                             <p v-if="errors?.name?.length" class="text-red-500 text-xs">
@@ -58,13 +58,13 @@ const handleSubmit = () => emit("submit");
                             <label class="text-xs font-bold text-slate-500 uppercase">Type</label>
                             <select 
                                 v-model="formData.type" 
-                                class="w-full px-4 py-3 bg-slate-50 rounded-xl"
+                                class="w-full px-4 py-3 bg-slate-50 rounded-xl text-slate-900"
                                 :class="{ 'cursor-not-allowed opacity-50 pointer-none': selectedCategory?.transactions_count > 0 }"
                                 :disabled="selectedCategory?.transactions_count > 0"
                                 :title="selectedCategory?.transactions_count > 0 ? 'Category is in use and cannot be deleted' : ''"
                             >
-                                <option v-for="type in categoryTypes" :key="type" :value="type">
-                                    {{ type }}
+                                <option v-for="type in categoryTypes" :key="type.value" :value="type.value">
+                                    {{ type.label }}
                                 </option>
                             </select>
                         </div>

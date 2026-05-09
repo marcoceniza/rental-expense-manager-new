@@ -1,42 +1,61 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
-import { Plus, Search, Pencil, Trash2, Tag } from 'lucide-vue-next'
+import { router } from '@inertiajs/vue3'
+import { Plus, Search, Pencil, Trash2, Tag, Filter } from 'lucide-vue-next'
 import ConfirmDelete from '@/components/ConfirmDelete.vue'
 import CategoryModal from '@/components/CategoryModal.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
+import type { Category } from '@/types'
 
 defineOptions({
     layout: AppLayout,
 })
 
-const page = usePage()
-const showCategoryModal = ref(false)
-const editingId = ref(null)
-const searchQuery = ref('')
-const typeFilter = ref('all')
-const isSubmitting = ref(false)
+interface FormData {
+    name: string;
+    type: string;
+    is_tuition: boolean;
+    is_other: boolean;
+}
 
-const isShowingDeleteConfirm = ref(false)
-const getConfirmDeleteData = ref({
+interface CategoryType {
+    value: string;
+    label: string;
+}
+
+const props = defineProps<{
+    categories: Category[];
+}>()
+
+const categoryTypes: CategoryType[] = [
+    { value: 'income', label: 'Income' },
+    { value: 'expense', label: 'Expense' },
+    { value: 'liability', label: 'Liability' },
+]
+
+const showCategoryModal = ref<boolean>(false)
+const editingId = ref<number | null>(null)
+const searchQuery = ref<string>('')
+const typeFilter = ref<string>('all')
+const isSubmitting = ref<boolean>(false)
+
+const isShowingDeleteConfirm = ref<boolean>(false)
+const getConfirmDeleteData = ref<{ id: number | null; name: string }>({
     id: null,
     name: '',
 })
 
-const selectedCategory = ref(null)
+const selectedCategory = ref<Category | undefined>(undefined)
 
-const formData = ref({
+const formData = ref<FormData>({
     name: '',
     type: 'expense',
     is_tuition: false,
     is_other: false,
 })
 
-/**
- * FILTERED CATEGORIES (UI ONLY)
- */
 const filteredCategories = computed(() => {
-    return page.props.categories
+    return props.categories
         .filter(c => {
             const matchesSearch = c.name
                 .toLowerCase()
@@ -51,10 +70,7 @@ const filteredCategories = computed(() => {
         .sort((a, b) => a.name.localeCompare(b.name))
 })
 
-/**
- * OPEN MODAL
- */
-const openModal = (c = null) => {
+const openModal = (c?: Category) => {
     selectedCategory.value = c
 
     if (c) {
@@ -73,9 +89,6 @@ const openModal = (c = null) => {
     showCategoryModal.value = true
 }
 
-/**
- * CLOSE MODAL
- */
 const closeModal = () => {
     showCategoryModal.value = false
     editingId.value = null
@@ -88,9 +101,6 @@ const closeModal = () => {
     }
 }
 
-/**
- * SUBMIT (CREATE / UPDATE)
- */
 const handleSubmit = async () => {
     if (isSubmitting.value) return
 
@@ -98,12 +108,12 @@ const handleSubmit = async () => {
 
     try {
         if (editingId.value) {
-            router.put(`/categories/${editingId.value}`, formData.value, {
+            router.put(route('categories.update', { id: editingId.value }), formData.value, {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
             })
         } else {
-            router.post('/categories', formData.value, {
+            router.post(route('categories.store'), formData.value, {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
             })
@@ -113,19 +123,13 @@ const handleSubmit = async () => {
     }
 }
 
-/**
- * DELETE CONFIRM
- */
-const confirmDeleteHandler = (id, name) => {
+const confirmDeleteHandler = (id: number, name: string) => {
     isShowingDeleteConfirm.value = true
     getConfirmDeleteData.value = { id, name }
 }
 
-/**
- * DELETE
- */
 const deleteCategory = () => {
-    router.delete(`/categories/${getConfirmDeleteData.value.id}`, {
+    router.delete(route('categories.destroy', { id: getConfirmDeleteData.value.id }), {
         onSuccess: () => {
             isShowingDeleteConfirm.value = false
         },
@@ -228,10 +232,10 @@ const deleteCategory = () => {
 
                         <button
                             @click="confirmDeleteHandler(c.id, c.name)"
-                            :disabled="c.transactions_count > 0"
-                            :title="c.transactions_count > 0 ? 'Category is in use and cannot be deleted' : 'Delete category'"
+                            :disabled="(c.transactions_count ?? 0) > 0"
+                            :title="(c.transactions_count ?? 0) > 0 ? 'Category is in use and cannot be deleted' : 'Delete category'"
                             class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            :class="c.transactions_count > 0 
+                            :class="(c.transactions_count ?? 0) > 0 
                                 ? 'cursor-not-allowed opacity-50 pointer-events-none' 
                                 : 'cursor-pointer'"
                         >
@@ -270,7 +274,6 @@ const deleteCategory = () => {
             v-model:isOpen="showCategoryModal"
             :formData="formData"
             :categoryTypes="categoryTypes"
-            :errors="errors"
             :isSubmitting="isSubmitting"
             @submit="handleSubmit"
             @close="closeModal"

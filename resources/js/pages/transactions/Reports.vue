@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import { format } from 'date-fns'
-import { FileDown, FileChartPie } from 'lucide-vue-next'
+import { FileDown, FileChartPie, Calendar, PieChart, BarChart3 } from 'lucide-vue-next'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
@@ -12,26 +12,21 @@ defineOptions({
     layout: AppLayout,
 })
 
-/**
- * PROPS FROM LARAVEL
- */
+const page = usePage()
+const isAdmin = computed(() => page.props.auth?.user?.user_type === 'admin')
+
 const props = defineProps({
+    year: Number,
     annualReport: Object,
     categoryReport: Array,
-    year: Number,
-    user: Object, // pass auth user here
-})
+    user: Object,
+    categorySummary: Object,
+});
 
-/**
- * STATE
- */
 const currentYear = ref(props.year)
 const pendingYear = ref(null)
 const showYearModal = ref(false)
 
-/**
- * NORMALIZED DATA
- */
 const annualStats = computed(() => {
     const data = props.annualReport || {}
 
@@ -44,13 +39,8 @@ const annualStats = computed(() => {
             net: Number(data?.totals?.net) || 0,
         },
     }
-})
+});
 
-const safeCategoryReport = computed(() => props.categoryReport || [])
-
-/**
- * YEAR CHANGE → INERTIA
- */
 const yearModel = computed({
     get: () => currentYear.value,
     set: (newYear) => {
@@ -62,7 +52,8 @@ const yearModel = computed({
 
 const confirmYearChange = () => {
     if (pendingYear.value) {
-        router.get('/reports', { year: pendingYear.value }, {
+        const reportPath = isAdmin.value ? '/admin/reports' : '/reports'
+        router.get(reportPath, { year: pendingYear.value }, {
             preserveState: true,
             preserveScroll: true,
         })
@@ -81,9 +72,6 @@ const cancelYearChange = () => {
 
 const label = computed(() => String(pendingYear.value))
 
-/**
- * FORMAT
- */
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
         style: 'currency',
@@ -96,9 +84,6 @@ const pdfCurrency = (value) => {
     return `PHP ${num.toFixed(2)}`
 }
 
-/**
- * PDF EXPORT
- */
 const exportPDF = () => {
     const doc = new jsPDF()
     const year = currentYear.value
@@ -136,10 +121,6 @@ const exportPDF = () => {
 
     doc.save(`Financial_Report_${year}.pdf`)
 }
-
-/**
- * CHART
- */
 const annualBarChart = computed(() => {
     const data = annualStats.value.monthly
 
@@ -161,8 +142,6 @@ const annualBarChart = computed(() => {
 
 <template>
 <div class="space-y-8">
-
-    <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h2 class="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 max-sm:text-2xl">
@@ -175,8 +154,6 @@ const annualBarChart = computed(() => {
         </div>
 
         <div class="flex items-center gap-3 max-sm:justify-end">
-
-            <!-- YEAR -->
             <select
                 v-model="yearModel"
                 class="bg-white border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all font-bold text-slate-700 shadow-sm"
@@ -185,8 +162,6 @@ const annualBarChart = computed(() => {
                     {{ y }}
                 </option>
             </select>
-
-            <!-- EXPORT -->
             <button
                 v-if="props.user?.user_type === 'admin'"
                 @click="exportPDF"
@@ -199,7 +174,6 @@ const annualBarChart = computed(() => {
         </div>
     </div>
 
-    <!-- TOTALS -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">
@@ -241,7 +215,6 @@ const annualBarChart = computed(() => {
         </div>
     </div>
 
-    <!-- TABLE -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex items-center gap-2">
             <Calendar class="w-5 h-5 text-blue-600" />
@@ -261,15 +234,11 @@ const annualBarChart = computed(() => {
                 </thead>
 
                 <tbody class="divide-y divide-slate-100">
-
-                    <!-- EMPTY -->
                     <tr v-if="(annualStats.monthly || []).length === 0">
                         <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
                             No data available for this year.
                         </td>
                     </tr>
-
-                    <!-- DATA -->
                     <tr
                         v-for="m in (annualStats.monthly || [])"
                         :key="m.month"
@@ -304,10 +273,7 @@ const annualBarChart = computed(() => {
         </div>
     </div>
 
-    <!-- CATEGORY + CHART -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <!-- CATEGORY -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex items-center gap-2">
                 <PieChart class="w-5 h-5 text-blue-600" />
@@ -316,7 +282,7 @@ const annualBarChart = computed(() => {
 
             <div class="p-6 space-y-4">
                 <div
-                    v-for="c in (safeCategoryReport || [])"
+                    v-for="c in (categorySummary.categoryReport || [])"
                     :key="c.name"
                     class="flex items-center justify-between"
                 >
@@ -335,7 +301,7 @@ const annualBarChart = computed(() => {
                 </div>
 
                 <div
-                    v-if="(safeCategoryReport || []).length === 0"
+                    v-if="(categorySummary.categoryReport || []).length === 0"
                     class="py-8 text-center text-slate-400 italic"
                 >
                     No data available for this year.
@@ -343,7 +309,6 @@ const annualBarChart = computed(() => {
             </div>
         </div>
 
-        <!-- CHART -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
             <div class="p-6 border-b border-slate-100 flex items-center gap-2">
                 <BarChart3 class="w-5 h-5 text-blue-600" />

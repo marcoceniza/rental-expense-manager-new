@@ -1,46 +1,92 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
-import { format } from 'date-fns'
-import { LayoutGrid, ArrowUpRight, ArrowDownRight } from 'lucide-vue-next'
+import { router, useForm } from '@inertiajs/vue3'
+import { format, parseISO } from 'date-fns'
+import { LayoutGrid, ArrowUpRight, ArrowDownRight, Pencil, Trash2 } from 'lucide-vue-next'
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
+import ConfirmDelete from '@/components/ConfirmDelete.vue'
+import OthersModal from '@/components/OthersModal.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 defineOptions({
     layout: AppLayout,
 })
 
-/**
- * PROPS FROM LARAVEL
- */
-const props = defineProps({
-    otherStats: Object,
-    categories: Array,
-    year: Number,
+interface Category {
+    id: number
+    name: string
+}
+
+interface Transaction {
+    id: number
+    description: string
+    remarks?: string | null
+    amount: number
+    type: 'income' | 'expense' | 'liability'
+    transaction_date: string
+    category_id: number
+}
+
+interface OtherStats {
+    income: number
+    transactions: Transaction[]
+}
+
+const props = defineProps<{
+    otherStats: OtherStats
+    categories: Category[]
+    year: number
+}>()
+
+const currentYear = ref<number>(props.year)
+const pendingYear = ref<number | null>(null)
+const showYearModal = ref(false)
+const editingId = ref<number | null>(null)
+const showModal = ref<boolean>(false)
+const isSubmitting = ref<boolean>(false)
+
+const categoryTypes = ['income', 'expense', 'liability']
+const filteredCategories = computed(() => props.categories)
+
+const form = useForm<{
+	transaction_date: string
+	type: string
+	category_id: string
+	description: string
+	amount: number
+	remarks: string
+	redirect?: string
+}>({
+	transaction_date: format(new Date(), 'yyyy-MM-dd'),
+	type: 'income',
+	category_id: '',
+	description: '',
+	amount: 0,
+	remarks: '',
+	redirect: 'admin.others'
 })
 
-/**
- * STATE
- */
-const currentYear = ref(props.year)
-const pendingYear = ref(null)
-const showYearModal = ref(false)
+const confirmDelete = ref<{
+	show: boolean
+	id: number | null
+	name: string
+}>({
+	show: false,
+	id: null,
+	name: ''
+})
 
-/**
- * CATEGORY MAP
- */
-const categoryMap = computed(() => {
-    const map = {}
-    props.categories.forEach(c => {
+const categoryMap = computed<Record<number, string>>(() => {
+    const map: Record<number, string> = {}
+
+    props.categories.forEach((c: Category) => {
         map[c.id] = c.name
     })
+
     return map
 })
 
-/**
- * YEAR CHANGE
- */
-const handleYearChange = (newYear) => {
+const handleYearChange = (newYear: number) => {
     if (newYear === currentYear.value) return
 
     pendingYear.value = newYear
@@ -50,15 +96,16 @@ const handleYearChange = (newYear) => {
 const prevYear = () => handleYearChange(currentYear.value - 1)
 const nextYear = () => handleYearChange(currentYear.value + 1)
 
-/**
- * CONFIRM CHANGE → INERTIA REQUEST
- */
 const confirmYearChange = () => {
     if (pendingYear.value !== null) {
-        router.get('/others', { year: pendingYear.value }, {
-            preserveState: true,
-            preserveScroll: true,
-        })
+        router.get(
+            route('admin.others'),
+            { year: pendingYear.value },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            }
+        )
 
         currentYear.value = pendingYear.value
     }
@@ -72,26 +119,109 @@ const cancelYearChange = () => {
     pendingYear.value = null
 }
 
-/**
- * LABEL
- */
-const label = computed(() => String(pendingYear.value))
+const label = computed<string>(() =>
+    String(pendingYear.value ?? currentYear.value)
+)
 
-/**
- * FORMAT
- */
-const formatCurrency = (amount) => {
+const formatCurrency = (amount: number | null | undefined) => {
     return new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(amount)
+    }).format(amount ?? 0)
+}
+
+const openModal = (t: any = null) => {
+	if (t) {
+		editingId.value = t.id
+
+		form.defaults({
+			transaction_date: format(parseISO(t.transaction_date), 'yyyy-MM-dd'),
+			type: t.type,
+			category_id: String(t.category_id),
+			description: t.description,
+			amount: t.amount,
+			remarks: t.remarks || '',
+			redirect: 'admin.others',
+		})
+	} else {
+		editingId.value = null
+
+		form.defaults({
+			transaction_date: format(new Date(), 'yyyy-MM-dd'),
+			type: 'income',
+			category_id: '',
+			description: '',
+			amount: 0,
+			remarks: '',
+			redirect: 'admin.others',
+		})
+	}
+
+	form.reset()
+	showModal.value = true
+}
+
+const closeModal = () => {
+	showModal.value = false
+	editingId.value = null
+
+	form.reset()
+	form.defaults({
+		transaction_date: format(new Date(), 'yyyy-MM-dd'),
+		type: 'income',
+		category_id: '',
+		description: '',
+		amount: 0,
+		remarks: '',
+		redirect: 'admin.others',
+	})
+}
+
+const handleSubmit = () => {
+	if (isSubmitting.value) return
+
+	isSubmitting.value = true
+
+	if (editingId.value) {
+		form.put(route('transactions.update', { id: editingId.value }), {
+			preserveScroll: true,
+			onFinish: () => {
+				isSubmitting.value = false
+				closeModal()
+			},
+		})
+	} else {
+		form.post(route('transactions.store'), {
+			preserveScroll: true,
+			onFinish: () => {
+				isSubmitting.value = false
+				closeModal()
+			},
+		})
+	}
+}
+
+const confirmDeleteHandler = (id: number, name: string) => {
+	confirmDelete.value = { show: true, id, name }
+}
+
+const deleteTransaction = () => {
+    if (!confirmDelete.value.id) return
+
+    form.delete(route('transactions.destroy', {
+        id: confirmDelete.value.id,
+        redirect: 'admin.others',
+    }), {
+        preserveScroll: true,
+        onFinish: () => {
+            confirmDelete.value.show = false
+        },
+    })
 }
 </script>
 
 <template>
     <div class="space-y-8">
-
-        <!-- HEADER -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 max-sm:text-2xl">
@@ -103,7 +233,6 @@ const formatCurrency = (amount) => {
                 </p>
             </div>
 
-            <!-- YEAR NAV -->
             <div class="flex items-center max-sm:justify-around gap-3 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
                 <button @click="prevYear" class="p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
                     <ArrowDownRight class="w-5 h-5 rotate-90 text-slate-400" />
@@ -124,24 +253,20 @@ const formatCurrency = (amount) => {
             </div>
         </div>
 
-        <!-- TABLE CARD -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-
-            <!-- HEADER -->
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-slate-900">
                     Other Transactions
                 </h3>
 
-                <p class="text-red-500">
+                <p class="text-emerald-500">
                     Total:
                     <strong>
-                        {{ formatCurrency(props.otherStats?.expense || 0) }}
+                        {{ formatCurrency(props.otherStats?.income) }}
                     </strong>
                 </p>
             </div>
 
-            <!-- TABLE -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
 
@@ -151,23 +276,20 @@ const formatCurrency = (amount) => {
                             <th class="px-6 py-4">Description</th>
                             <th class="px-6 py-4">Category</th>
                             <th class="px-6 py-4 text-right">Amount</th>
+                            <th class="px-6 py-4">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
-
-                        <!-- EMPTY -->
-                        <tr v-if="(props.otherStats?.transactions || []).length === 0">
-                            <td colspan="4" class="px-6 py-12 text-center text-slate-400 italic">
-                                No transactions found.
+                        <tr v-if="!(props.otherStats?.transactions?.length)">
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
+                                No transaction others found.
                             </td>
                         </tr>
-
-                        <!-- LIST -->
                         <tr
-                            v-for="t in (props.otherStats?.transactions || [])"
+                            v-for="t in (props.otherStats?.transactions ?? [])"
                             :key="t.id"
-                            class="hover:bg-slate-50 transition-colors"
+                            class="hover:bg-slate-50 transition-colors group"
                         >
                             <td class="px-6 py-4 text-sm text-slate-600">
                                 {{ format(new Date(t.transaction_date), 'MMM dd, yyyy') }}
@@ -197,8 +319,25 @@ const formatCurrency = (amount) => {
                                     {{ formatCurrency(t.amount) }}
                                 </span>
                             </td>
-                        </tr>
 
+                            <td class="px-6 py-4">
+								<div class="flex items-center justify-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+									<button
+										@click="openModal(t)"
+										class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+									>
+										<Pencil class="w-4 h-4" />
+									</button>
+
+									<button
+										@click="confirmDeleteHandler(t.id, t.description)"
+										class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+									>
+										<Trash2 class="w-4 h-4" />
+									</button>
+								</div>
+							</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -206,7 +345,29 @@ const formatCurrency = (amount) => {
 
     </div>
 
-    <!-- MODAL -->
+    <OthersModal
+        v-model:isOpen="showModal"
+        :editingId="editingId"
+        :formData="form"
+        :categoryTypes="categoryTypes"
+        :filteredCategories="filteredCategories"
+        :isSubmitting="isSubmitting"
+        :loading="form.processing"
+        @submit="handleSubmit"
+        @close="closeModal"
+    />
+
+    <ConfirmDelete
+        v-if="confirmDelete.show"
+        :isOpen="confirmDelete.show"
+        title="Delete Transaction"
+        :message="confirmDelete.name"
+        actionName="transaction"
+        :loading="form.processing"
+        @confirm="deleteTransaction"
+        @close="confirmDelete.show = false"
+    />
+
     <ConfirmDateChangeModal
         :show="showYearModal"
         :label="label"

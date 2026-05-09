@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Transactions;
 
 use App\Http\Controllers\Controller;
-use App\Models\Transaction;
-use App\Models\Category;
 use App\Http\Requests\Transactions\StoreTransactionRequest;
 use App\Http\Requests\Transactions\UpdateTransactionRequest;
+use App\Models\Category;
+use App\Models\Transaction;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
@@ -17,9 +17,46 @@ class TransactionController extends Controller
     public function index()
     {
         return Inertia::render('transactions/Transactions', [
-            'transactions' => Transaction::with('category')->latest()->paginate(15),
+            'transactions' => Transaction::with('category')
+                ->whereHas('category', function ($query) {
+                    $query->where('is_other', false);
+                })
+                ->latest()
+                ->paginate(10),
+
             'categories' => Category::all(),
-            'trashed' => Transaction::onlyTrashed()->count(),
+
+            'trashed' => Transaction::onlyTrashed()
+                ->with('category')
+                ->whereHas('category', function ($query) {
+                    $query->where('is_other', false);
+                })
+                ->latest()
+                ->paginate(10),
+
+            'trashedCount' => Transaction::onlyTrashed()
+                ->whereHas('category', function ($query) {
+                    $query->where('is_other', false);
+                })
+                ->count(),
+        ]);
+    }
+
+    /**
+     * Display a listing of user's transactions
+     */
+    public function userTransactions()
+    {
+        return Inertia::render('transactions/Transactions', [
+            'transactions' => Transaction::with('category')
+                ->dashboardVisible()
+                ->latest()
+                ->paginate(15),
+            'categories' => Category::where('is_tuition', false)
+                ->where('is_other', false)
+                ->get(),
+            'trashed' => ['data' => []],
+            'trashedCount' => 0,
         ]);
     }
 
@@ -30,7 +67,9 @@ class TransactionController extends Controller
     {
         Transaction::create($request->validated());
 
-        return redirect('/transactions')
+        $redirect = $request->input('redirect', 'transactions.index');
+
+        return redirect()->route($redirect)
             ->with('success', 'Transaction created successfully.');
     }
 
@@ -41,7 +80,9 @@ class TransactionController extends Controller
     {
         $transaction->update($request->validated());
 
-        return redirect('/transactions')
+        $redirect = $request->input('redirect', 'transactions.index');
+
+        return redirect()->route($redirect)
             ->with('success', 'Transaction updated successfully.');
     }
 
@@ -52,7 +93,9 @@ class TransactionController extends Controller
     {
         $transaction->delete();
 
-        return redirect('/transactions')
+        $redirect = request()->input('redirect', 'transactions.index');
+
+        return redirect()->route($redirect)
             ->with('success', 'Transaction deleted successfully.');
     }
 
@@ -64,7 +107,7 @@ class TransactionController extends Controller
         $transaction = Transaction::withTrashed()->findOrFail($id);
         $transaction->restore();
 
-        return redirect('/transactions')
+        return redirect()->route('transactions.index')
             ->with('success', 'Transaction restored successfully.');
     }
 
@@ -76,7 +119,7 @@ class TransactionController extends Controller
         $transaction = Transaction::withTrashed()->findOrFail($id);
         $transaction->forceDelete();
 
-        return redirect('/transactions')
+        return redirect()->route('transactions.index')
             ->with('success', 'Transaction permanently deleted.');
     }
 }

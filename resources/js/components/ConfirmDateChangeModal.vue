@@ -1,4 +1,6 @@
 <script setup>
+import BaseButton from './base/BaseButton.vue';
+
 const props = defineProps({
     show: Boolean,
     label: String,
@@ -15,13 +17,18 @@ const emit = defineEmits(['confirm', 'cancel']);
             </p>
 
             <div class="flex justify-end gap-2">
-                <button @click="$emit('cancel')" class="px-3 py-2 text-sm bg-slate-200 rounded cursor-pointer hover:bg-slate-300 transition-colors">
+                <BaseButton type="button" variant="secondary" size="sm" @click="$emit('cancel')">
                     Cancel
-                </button>
+                </BaseButton>
 
-                <button @click="$emit('confirm')" class="px-3 py-2 text-sm bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700 transition-colors">
+                <BaseButton
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    @click="$emit('confirm')"
+                >
                     Proceed
-                </button>
+                </BaseButton>
             </div>
         </div>
     </div>

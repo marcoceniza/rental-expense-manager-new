@@ -1,5 +1,5 @@
 <script setup>
-import { X, Check } from "lucide-vue-next";
+import { X } from "lucide-vue-next";
 import BaseButton from "./base/BaseButton.vue";
 
 const props = defineProps({
@@ -27,7 +27,7 @@ const handleSubmit = () => emit("submit");
                 <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-y-auto max-h-[calc(100vh-4rem)]">
                     <div class="p-6 border-b border-slate-100 flex justify-between bg-slate-50">
                         <h3 class="text-xl font-bold text-slate-900">
-                            {{ editingId ? 'Edit Transaction' : 'New Transaction' }}
+                            {{ editingId ? 'Edit Other Transaction' : 'New Other Transaction' }}
                         </h3>
                         <button @click="close" class="p-2 hover:bg-white rounded-lg cursor-pointer">
                             <X class="w-5 h-5 text-slate-400" />
@@ -82,13 +82,7 @@ const handleSubmit = () => emit("submit");
                                 Cancel
                             </BaseButton>
 
-                            <BaseButton
-                                type="submit"
-                                fullWidth
-                                variant="primary"
-                                :loading="loading"
-                                :disabled="loading"
-                            >
+                            <BaseButton type="submit" fullWidth variant="primary" :disabled="loading" :loading="loading">
                                 Update
                             </BaseButton>
                         </div>
