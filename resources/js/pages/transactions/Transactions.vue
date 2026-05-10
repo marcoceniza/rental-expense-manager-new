@@ -117,7 +117,7 @@ const closeModal = () => {
 
 const handleSubmit = () => {
     if (editingId.value) {
-        form.put(route('transactions.update', { id: editingId.value }), {
+        form.put(route('transactions.update', { transaction: editingId.value }), {
             preserveScroll: true,
             onSuccess: () => closeModal()
         })
@@ -141,7 +141,7 @@ const deleteTransaction = () => {
     if (!confirmDelete.value.id) return
 
     form.delete(route('transactions.destroy', {
-        id: confirmDelete.value.id
+        transaction: confirmDelete.value.id
     }), {
         preserveScroll: true,
         onFinish: () => {
@@ -151,13 +151,13 @@ const deleteTransaction = () => {
 }
 
 const restoreTransaction = (id: number) => {
-    form.patch(route('transactions.restore', { id }), {
+    form.patch(route('transactions.restore', { transaction: id }), {
         preserveScroll: true
     })
 }
 
 const deletePermanent = (id: number) => {
-    form.delete(route('transactions.force-delete', { id }), {
+    form.delete(route('transactions.force-delete', { transaction: id }), {
         preserveScroll: true
     })
 }

@@ -108,7 +108,7 @@ const handleSubmit = async () => {
 
     try {
         if (editingId.value) {
-            router.put(route('categories.update', { id: editingId.value }), formData.value, {
+            router.put(route('categories.update', { category: editingId.value }), formData.value, {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
             })
@@ -129,7 +129,7 @@ const confirmDeleteHandler = (id: number, name: string) => {
 }
 
 const deleteCategory = () => {
-    router.delete(route('categories.destroy', { id: getConfirmDeleteData.value.id }), {
+    router.delete(route('categories.destroy', { category: getConfirmDeleteData.value.id }), {
         onSuccess: () => {
             isShowingDeleteConfirm.value = false
         },

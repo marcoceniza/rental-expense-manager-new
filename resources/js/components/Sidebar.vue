@@ -3,6 +3,7 @@ import { computed, inject } from 'vue'
 import { usePage, Link } from '@inertiajs/vue3'
 import { LogOut, X } from "lucide-vue-next"
 import { useNavItems } from '../composables/useNavItems'
+import logo2 from '../images/logo2.png'
 
 const { navItems } = useNavItems()
 
@@ -47,7 +48,7 @@ const handleLogout = inject('handleLogout')
 		<!-- logo -->
 		<div class="p-6 border-b border-slate-800">
 			<figure>
-				<img src="/logo2.png" class="mx-auto w-62.5" />
+				<img :src="logo2" class="mx-auto w-62.5" />
 			</figure>
 		</div>
 

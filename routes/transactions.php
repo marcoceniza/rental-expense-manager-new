@@ -44,8 +44,10 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/charity', [ReportController::class, 'charityIndex'])
         ->name('admin.charity');
+
     Route::get('/others', [ReportController::class, 'otherIndex'])
         ->name('admin.others');
+
     Route::get('/reports', [ReportController::class, 'annualReport'])
         ->name('admin.reports');
 
@@ -53,32 +55,35 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
 
     Route::resource('transactions', TransactionController::class);
 
-    Route::prefix('categories')->group(function () {
-        Route::patch('{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
-        Route::delete('{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force-delete');
-    });
+    Route::patch('categories/{id}/restore', [CategoryController::class, 'restore'])
+        ->name('categories.restore');
 
-    Route::prefix('transactions')->group(function () {
-        Route::get('trashed', fn () => Inertia::render('Transactions/Trashed'));
+    Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])
+        ->name('categories.force-delete');
 
-        Route::patch('{id}/restore', [TransactionController::class, 'restore'])->name('transactions.restore');
+    Route::patch('transactions/{id}/restore', [TransactionController::class, 'restore'])
+        ->name('transactions.restore');
 
-        Route::delete('{id}/force-delete', [TransactionController::class, 'forceDelete'])->name('transactions.force-delete');
-    });
+    Route::delete('transactions/{id}/force-delete', [TransactionController::class, 'forceDelete'])
+        ->name('transactions.force-delete');
 
-    Route::get('/recurring', fn () => Inertia::render('transactions/Recurring', [
-        'recurringTransactions' => Recurring::with('category')->get(),
-    ]))->name('recurring.index');
+    Route::get('/recurring', function () {
+        return Inertia::render('transactions/Recurring', [
+            'recurringTransactions' => Recurring::with('category')->get(),
+        ]);
+    })->name('admin.recurring');
 
-    Route::post('/recurring', [RecurringController::class, 'store'])->name('recurring.store');
+    Route::post('/recurring', [RecurringController::class, 'store'])
+        ->name('recurring.store');
 
-    Route::put('/recurring/{recurring}', [RecurringController::class, 'update'])->name('recurring.update');
+    Route::put('/recurring/{recurring}', [RecurringController::class, 'update'])
+        ->name('recurring.update');
 
-    Route::delete('/recurring/{recurring}', [RecurringController::class, 'destroy'])->name('recurring.destroy');
+    Route::delete('/recurring/{recurring}', [RecurringController::class, 'destroy'])
+        ->name('recurring.destroy');
 
     Route::get('/register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+        ->name('admin.register');
 
     Route::post('/register', [RegisteredUserController::class, 'store']);
-
 });

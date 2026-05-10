@@ -64,7 +64,7 @@ const closeModal = () => {
 
 const handleSubmit = () => {
     if (isEditMode.value) {
-        router.put(route('recurring.update', editingId.value), formData.value, {
+        router.put(route('recurring.update', { recurring: editingId.value }), formData.value, {
             preserveScroll: true,
             onSuccess: () => closeModal()
         })
@@ -78,7 +78,7 @@ const handleSubmit = () => {
 
 const deleteRecurring = (id) => {
     if (confirm('Are you sure you want to delete this recurring transaction?')) {
-        router.delete(route('recurring.destroy', id), {
+        router.delete(route('recurring.destroy', { recurring: id }), {
             preserveScroll: true,
         })
     }

@@ -183,7 +183,7 @@ const handleSubmit = () => {
 	isSubmitting.value = true
 
 	if (editingId.value) {
-		form.put(route('transactions.update', { id: editingId.value }), {
+		form.put(route('transactions.update', { transaction: editingId.value }), {
 			preserveScroll: true,
 			onFinish: () => {
 				isSubmitting.value = false
@@ -209,7 +209,7 @@ const deleteTransaction = () => {
     if (!confirmDelete.value.id) return
 
     form.delete(route('transactions.destroy', {
-        id: confirmDelete.value.id,
+        transaction: confirmDelete.value.id,
         redirect: 'admin.others',
     }), {
         preserveScroll: true,

@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar.vue'
 import MobileHeader from '../components/MobileHeader.vue'
 import { computed, provide, ref } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 
 const page = usePage()
 
@@ -20,7 +21,7 @@ const toggleMenu = () => {
 // User and logout
 const user = computed(() => page.props.auth?.user)
 const handleLogout = () => {
-    router.post('/logout')
+    router.post(route('logout'))
 }
 
 // Provide to child components
