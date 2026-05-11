@@ -31,15 +31,11 @@ const close = () => emit('close')
 
                 <strong>This action cannot be undone.</strong>
             </p>
-
             <div class="flex justify-end gap-2 mt-6">
-
-                <!-- Cancel -->
                 <BaseButton variant="secondary" size="sm" @click="close">
                     Cancel
                 </BaseButton>
 
-                <!-- Delete -->
                 <BaseButton
                     variant="danger"
                     :loading="loading"

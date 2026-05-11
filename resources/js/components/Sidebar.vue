@@ -6,28 +6,20 @@ import { useNavItems } from '../composables/useNavItems'
 import logo2 from '../images/logo2.png'
 
 const { navItems } = useNavItems()
-
-// ✅ Inertia page object (replaces Vue Router)
 const page = usePage()
-
 const currentUrl = computed(() => page.url)
 
 const isAuthPage = computed(() =>
 	['Login', 'Register'].includes(page.component)
 )
 
-/**
- * MENU STATE (NO STORE)
- */
 const isMenuOpen = inject('isMenuOpen')
 const toggleMenu = inject('toggleMenu')
-
 const user = inject('user')
 const handleLogout = inject('handleLogout')
 </script>
 
 <template>
-	<!-- overlay -->
 	<div
 		v-if="isMenuOpen"
 		class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-60 md:hidden"
@@ -45,14 +37,12 @@ const handleLogout = inject('handleLogout')
 		class="fixed md:sticky top-0 left-0 z-70 w-64 bg-slate-900 text-white flex flex-col h-screen border-r border-slate-800 transition-transform duration-300 md:translate-x-0"
 		:class="isMenuOpen ? 'translate-x-0' : '-translate-x-full'"
 	>
-		<!-- logo -->
 		<div class="p-6 border-b border-slate-800">
 			<figure>
 				<img :src="logo2" class="mx-auto w-62.5" />
 			</figure>
 		</div>
 
-		<!-- nav -->
 		<nav class="flex-1 p-4 space-y-1 overflow-y-auto">
 			<Link
 				v-for="item in navItems"
@@ -66,7 +56,6 @@ const handleLogout = inject('handleLogout')
 			</Link>
 		</nav>
 
-		<!-- user -->
 		<div class="p-4 border-t border-slate-800 space-y-2">
 			<div class="flex items-center gap-3 px-4 py-3 bg-slate-800/50 rounded-xl">
 				<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { X, Check, LoaderCircle } from 'lucide-vue-next'
+import { X } from 'lucide-vue-next'
 import BaseButton from './base/BaseButton.vue'
 
 interface Category {
@@ -32,7 +32,6 @@ const emit = defineEmits([
 ])
 
 const close = () => emit('update:isOpen', false)
-
 const handleSubmit = () => emit('submit')
 </script>
 
@@ -128,7 +127,6 @@ const handleSubmit = () => emit('submit')
                             </BaseButton>
 
                             <BaseButton type="submit" fullWidth variant="primary" :disabled="loading" :loading="loading">
-
                                 Update
                             </BaseButton>
                         </div>

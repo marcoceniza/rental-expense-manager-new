@@ -2,13 +2,7 @@
 import { computed, ref } from 'vue'
 import { router, usePage, useForm } from '@inertiajs/vue3'
 import { format, parseISO } from 'date-fns'
-import {
-    Heart,
-    ArrowUpRight,
-    ArrowDownRight,
-    Pencil,
-    Trash2
-} from 'lucide-vue-next'
+import{ Heart, ArrowUpRight, ArrowDownRight, Pencil, Trash2 } from 'lucide-vue-next'
 
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
 import ConfirmDelete from '@/components/ConfirmDelete.vue'

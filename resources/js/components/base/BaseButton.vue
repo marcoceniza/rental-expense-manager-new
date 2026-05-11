@@ -62,11 +62,7 @@ const handleClick = (event) => {
         @click="handleClick"
         v-bind="$attrs"
     >
-        <LoaderCircle
-            v-if="loading"
-            class="w-4 h-4 animate-spin"
-        />
-
+        <LoaderCircle v-if="loading" class="w-4 h-4 animate-spin"/>
         <slot />
     </button>
 </template>

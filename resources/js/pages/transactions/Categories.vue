@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, useForm } from '@inertiajs/vue3'
 import { Plus, Search, Pencil, Trash2, Tag, Filter } from 'lucide-vue-next'
 import ConfirmDelete from '@/components/ConfirmDelete.vue'
 import CategoryModal from '@/components/CategoryModal.vue'
@@ -10,13 +10,6 @@ import type { Category } from '@/types'
 defineOptions({
     layout: AppLayout,
 })
-
-interface FormData {
-    name: string;
-    type: string;
-    is_tuition: boolean;
-    is_other: boolean;
-}
 
 interface CategoryType {
     value: string;
@@ -37,7 +30,6 @@ const showCategoryModal = ref<boolean>(false)
 const editingId = ref<number | null>(null)
 const searchQuery = ref<string>('')
 const typeFilter = ref<string>('all')
-const isSubmitting = ref<boolean>(false)
 
 const isShowingDeleteConfirm = ref<boolean>(false)
 const getConfirmDeleteData = ref<{ id: number | null; name: string }>({
@@ -47,7 +39,7 @@ const getConfirmDeleteData = ref<{ id: number | null; name: string }>({
 
 const selectedCategory = ref<Category | undefined>(undefined)
 
-const formData = ref<FormData>({
+const form = useForm({
     name: '',
     type: 'expense',
     is_tuition: false,
@@ -75,15 +67,13 @@ const openModal = (c?: Category) => {
 
     if (c) {
         editingId.value = c.id
-        formData.value = { ...c }
+        form.clearErrors()
+        form.defaults(c)
+        form.reset()
     } else {
         editingId.value = null
-        formData.value = {
-            name: '',
-            type: 'expense',
-            is_tuition: false,
-            is_other: false,
-        }
+        form.clearErrors()
+        form.reset()
     }
 
     showCategoryModal.value = true
@@ -92,34 +82,26 @@ const openModal = (c?: Category) => {
 const closeModal = () => {
     showCategoryModal.value = false
     editingId.value = null
-
-    formData.value = {
-        name: '',
-        type: 'income',
-        is_tuition: false,
-        is_other: false,
-    }
+    form.reset()
 }
 
 const handleSubmit = async () => {
-    if (isSubmitting.value) return
-
-    isSubmitting.value = true
+    if (form.processing) return
 
     try {
         if (editingId.value) {
-            router.put(route('categories.update', { category: editingId.value }), formData.value, {
+            form.put(route('categories.update', { category: editingId.value }), {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
             })
         } else {
-            router.post(route('categories.store'), formData.value, {
+            form.post(route('categories.store'), {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
             })
         }
-    } finally {
-        isSubmitting.value = false
+    } catch (error) {
+        console.error('An error occurred:', error)
     }
 }
 
@@ -139,8 +121,6 @@ const deleteCategory = () => {
 
 <template>
     <div class="space-y-8">
-
-        <!-- HEADER -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 max-sm:text-2xl">
@@ -161,10 +141,8 @@ const deleteCategory = () => {
             </button>
         </div>
 
-        <!-- FILTER -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
             
-            <!-- SEARCH -->
             <div class="relative flex-1 w-full">
                 <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
@@ -175,7 +153,6 @@ const deleteCategory = () => {
                 />
             </div>
 
-            <!-- FILTER -->
             <div class="flex items-center gap-2 w-full md:w-auto">
                 <Filter class="w-5 h-5 text-slate-400" />
                 <select
@@ -190,10 +167,7 @@ const deleteCategory = () => {
             </div>
         </div>
 
-        <!-- LIST -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            <!-- EMPTY -->
             <div
                 v-if="filteredCategories.length === 0"
                 class="col-span-full py-12 text-center text-slate-400 italic"
@@ -201,7 +175,6 @@ const deleteCategory = () => {
                 No categories found matching your criteria.
             </div>
 
-            <!-- CARD -->
             <div
                 v-for="c in filteredCategories"
                 :key="c.id"
@@ -209,7 +182,6 @@ const deleteCategory = () => {
             >
                 <div class="flex items-start justify-between mb-4">
 
-                    <!-- ICON -->
                     <div
                         class="p-3 rounded-xl"
                         :class="{
@@ -244,12 +216,10 @@ const deleteCategory = () => {
                     </div>
                 </div>
 
-                <!-- NAME -->
                 <h3 class="text-lg font-bold text-slate-900 mb-1">
                     {{ c.name }}
                 </h3>
 
-                <!-- TYPE -->
                 <p
                     class="text-xs font-bold uppercase tracking-wider"
                     :class="{
@@ -261,26 +231,22 @@ const deleteCategory = () => {
                     {{ c.type }}
                 </p>
 
-                <!-- BACKGROUND ICON -->
                 <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                     <Tag class="w-24 h-24 rotate-12" />
                 </div>
             </div>
-
         </div>
 
-        <!-- MODAL -->
         <CategoryModal
             v-model:isOpen="showCategoryModal"
-            :formData="formData"
+            :formData="form"
             :categoryTypes="categoryTypes"
-            :isSubmitting="isSubmitting"
+            :loading="form.processing"
             @submit="handleSubmit"
             @close="closeModal"
             :selectedCategory="selectedCategory"
         />
 
-        <!-- DELETE -->
         <ConfirmDelete
             v-if="isShowingDeleteConfirm"
             :isOpen="true"
@@ -289,6 +255,5 @@ const deleteCategory = () => {
             @confirm="deleteCategory"
             @close="isShowingDeleteConfirm = false"
         />
-
     </div>
 </template>

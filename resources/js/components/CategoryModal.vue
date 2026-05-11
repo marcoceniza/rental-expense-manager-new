@@ -1,5 +1,5 @@
 <script setup>
-import { X, Check } from "lucide-vue-next";
+import { X, LoaderCircle } from "lucide-vue-next";
 import BaseButton from "./base/BaseButton.vue";
 
 const props = defineProps({
@@ -8,7 +8,7 @@ const props = defineProps({
     formData: { type: Object, required: true },
     categoryTypes: { type: Array, required: true },
     errors: { type: Object, default: () => ({}) },
-    isSubmitting: { type: Boolean, default: false },
+    loading: { type: Boolean, default: false },
     selectedCategory: { type: Object, default: null },
 });
 
@@ -28,7 +28,6 @@ const handleSubmit = () => emit("submit");
             <Transition name="scale">
                 <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-y-auto max-h-[calc(100vh-4rem)]">
 
-                    <!-- Header -->
                     <div class="p-6 border-b border-slate-100 flex justify-between ">
                         <h3 class="text-xl font-bold text-slate-900">
                             {{ editingId ? 'Edit Category' : 'New Category' }}
@@ -38,10 +37,7 @@ const handleSubmit = () => emit("submit");
                         </button>
                     </div>
 
-                    <!-- Body -->
                     <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
-
-                        <!-- Name -->
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold text-slate-500 uppercase">Category Name</label>
                             <input v-model="formData.name" type="text" placeholder="e.g., Maintenance, Rent, etc."
@@ -53,7 +49,6 @@ const handleSubmit = () => emit("submit");
                             </p>
                         </div>
 
-                        <!-- Type -->
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold text-slate-500 uppercase">Type</label>
                             <select 
@@ -69,7 +64,6 @@ const handleSubmit = () => emit("submit");
                             </select>
                         </div>
 
-                        <!-- Checkbox -->
                         <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
                             <input type="checkbox" v-model="formData.is_tuition" class="w-6 h-6 cursor-pointer" />
                             <div>
@@ -90,20 +84,14 @@ const handleSubmit = () => emit("submit");
                             </div>
                         </div>
 
-                        <!-- Footer -->
                         <div class="pt-4 flex gap-3">
                             <BaseButton type="button" fullWidth variant="secondary" @click="close">
                                 Cancel
                             </BaseButton>
 
-                            <BaseButton type="submit" fullWidth variant="primary" :disabled="isSubmitting">
-                                <Check class="w-5 h-5" />
-                                <span v-if="isSubmitting">
-                                    {{ editingId ? 'Updating...' : 'Saving...' }}
-                                </span>
-                                <span v-else>
-                                    {{ editingId ? 'Update' : 'Save' }}
-                                </span>
+                            <BaseButton type="submit" fullWidth variant="primary" :disabled="loading">
+                                <LoaderCircle v-if="loading" class="h-4 w-4 animate-spin" />
+                                Save
                             </BaseButton>
                         </div>
                     </form>

@@ -20,11 +20,11 @@ class StoreRecurringRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => ['required', 'exists:categories,id'],
-            'amount' => ['required', 'numeric', 'min:0'],
-            'frequency' => ['required', 'in:monthly'], // future-proof
-            'start_date' => ['required', 'date'],
-            'description' => ['required', 'string', 'max:255'],
+            'category_id' => 'required|exists:categories,id',
+            'amount' => 'required|numeric|min:0',
+            'frequency' => 'required|in:monthly',
+            'start_date' => 'required|date',
+            'description' => 'required|string|max:255',
         ];
     }
 }

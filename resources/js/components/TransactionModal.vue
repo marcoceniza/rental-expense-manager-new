@@ -1,5 +1,5 @@
 <script setup>
-import { X, Check } from "lucide-vue-next";
+import { X } from "lucide-vue-next";
 import BaseButton from "./base/BaseButton.vue";
 
 const props = defineProps({
@@ -89,6 +89,7 @@ const handleSubmit = () => emit("submit");
                                 :loading="loading"
                                 :disabled="loading"
                             >
+                                <LoaderCircle v-if="loading" class="h-4 w-4 animate-spin" />
                                 Update
                             </BaseButton>
                         </div>
