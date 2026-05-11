@@ -89,7 +89,6 @@ const handleSubmit = () => emit("submit");
                                 :loading="loading"
                                 :disabled="loading"
                             >
-                                <LoaderCircle v-if="loading" class="h-4 w-4 animate-spin" />
                                 Update
                             </BaseButton>
                         </div>

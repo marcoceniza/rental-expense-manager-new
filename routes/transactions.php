@@ -37,19 +37,19 @@ Route::middleware(['auth', 'user'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+Route::name('admin.')->prefix('admin')->middleware(['auth','admin'])->group(function (){
 
     Route::get('/dashboard', [ReportController::class, 'index'])
-        ->name('admin.dashboard');
+        ->name('dashboard');
 
     Route::get('/charity', [ReportController::class, 'charityIndex'])
-        ->name('admin.charity');
+        ->name('charity');
 
     Route::get('/others', [ReportController::class, 'otherIndex'])
-        ->name('admin.others');
+        ->name('others');
 
     Route::get('/reports', [ReportController::class, 'annualReport'])
-        ->name('admin.reports');
+        ->name('reports');
 
     Route::resource('categories', CategoryController::class);
 
@@ -71,7 +71,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         return Inertia::render('transactions/Recurring', [
             'recurringTransactions' => Recurring::with('category')->get(),
         ]);
-    })->name('admin.recurring');
+    })->name('recurring');
 
     Route::post('/recurring', [RecurringController::class, 'store'])
         ->name('recurring.store');
@@ -83,7 +83,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         ->name('recurring.destroy');
 
     Route::get('/register', [RegisteredUserController::class, 'create'])
-        ->name('admin.register');
+        ->name('register');
 
     Route::post('/register', [RegisteredUserController::class, 'store']);
 });

@@ -12,7 +12,13 @@ defineProps<{
 }>();
 
 const page = usePage<SharedData>()
-const notyf = new Notyf()
+const notyf = new Notyf({
+    duration: 3000,
+    position: {
+        x: 'right',
+        y: 'top',
+    },
+})
 
 watch(
     () => page.props.flash,

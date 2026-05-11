@@ -9,7 +9,13 @@ import 'notyf/notyf.min.css'
 import { User, SharedData, FlashProps } from '@/types'
 
 const page = usePage<SharedData>()
-const notyf = new Notyf()
+const notyf = new Notyf({
+    duration: 3000,
+    position: {
+        x: 'right',
+        y: 'top',
+    },
+})
 
 const isAuthPage = computed(() =>
     ['Login', 'Register', 'ForgotPassword', 'ResetPassword', 'VerifyEmail', 'ConfirmPassword'].includes(page.component)

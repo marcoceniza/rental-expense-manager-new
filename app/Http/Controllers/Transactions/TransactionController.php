@@ -107,7 +107,7 @@ class TransactionController extends Controller
         $transaction = Transaction::withTrashed()->findOrFail($id);
         $transaction->restore();
 
-        return redirect()->route('transactions.index')
+        return redirect()->route('admin.transactions.index')
             ->with('success', 'Transaction restored successfully.');
     }
 
@@ -119,7 +119,7 @@ class TransactionController extends Controller
         $transaction = Transaction::withTrashed()->findOrFail($id);
         $transaction->forceDelete();
 
-        return redirect()->route('transactions.index')
+        return redirect()->route('admin.transactions.index')
             ->with('success', 'Transaction permanently deleted.');
     }
 }

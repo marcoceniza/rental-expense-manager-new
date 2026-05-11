@@ -8,7 +8,6 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { notyf } from '@/plugins/notyf';
 
 defineOptions({
     layout: AppLayout,
@@ -27,18 +26,6 @@ const submit = () => {
     form.post(route('register'), {
         onSuccess: () => {
             form.reset()
-            if (page.props.flash?.success) {
-                notyf.success(page.props.flash.success)
-            }
-            if (page.props.flash?.error) {
-                notyf.error(page.props.flash.error)
-            }
-            if (page.props.flash?.warning) {
-                notyf.warning(page.props.flash.warning)
-            }
-            if (page.props.flash?.info) {
-                notyf.info(page.props.flash.info)
-            }
         },
     })
 }
