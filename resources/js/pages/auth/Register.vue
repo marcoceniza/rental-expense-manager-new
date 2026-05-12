@@ -13,8 +13,6 @@ defineOptions({
     layout: AppLayout,
 })
 
-const page = usePage();
-
 const form = useForm({
     name: '',
     email: '',
@@ -23,7 +21,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('register'), {
+    form.post(route('admin.register'), {
         onSuccess: () => {
             form.reset()
         },

@@ -11,31 +11,47 @@ use Inertia\Inertia;
 
 class ReportController extends Controller
 {
-    public function index()
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD
+    |--------------------------------------------------------------------------
+    */
+
+    public function index(Request $request)
     {
-        $month = request('month', now()->format('Y-m'));
+        return Inertia::render('Dashboard', $this->dashboardData($request));
+    }
+
+    public function userDashboard(Request $request)
+    {
+        return Inertia::render('Dashboard', $this->dashboardData($request));
+    }
+
+    private function dashboardData(Request $request)
+    {
+        $month = $request->month ?? now()->format('Y-m');
 
         $monthDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
 
         $start = $monthDate->copy()->startOfMonth();
         $end = $monthDate->copy()->endOfMonth();
 
-        return Inertia::render('Dashboard', [
+        return [
             'month' => $monthDate->format('Y-m'),
             'categories' => Category::all(),
             'monthlyReport' => $this->buildMonthlyReport($start, $end),
-            'transactions' => $this->buildMonthlyTransactions($start, $end),
-        ]);
+            'transactions' => Transaction::filtered($start, $end, auth()->user())
+                ->orderByDesc('transaction_date')
+                ->get(),
+        ];
     }
 
     private function buildMonthlyReport($start, $end)
     {
-        $query = $this->baseTransactionQuery($start, $end);
+        $query = Transaction::filtered($start, $end, auth()->user());
 
         $income = (clone $query)->where('type', 'income')->sum('amount');
-
         $expense = (clone $query)->where('type', 'expense')->sum('amount');
-
         $liability = (clone $query)->where('type', 'liability')->sum('amount');
 
         return [
@@ -46,38 +62,15 @@ class ReportController extends Controller
         ];
     }
 
-    private function buildMonthlyTransactions($start, $end)
-    {
-        return $this->baseTransactionQuery($start, $end)
-            ->orderByDesc('transaction_date')
-            ->get();
-    }
-
-    public function userDashboard(Request $request)
-    {
-        $month = $request->month ?? now()->format('Y-m');
-
-        $monthDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
-
-        $start = $monthDate->copy()->startOfMonth();
-        $end = $monthDate->copy()->endOfMonth();
-
-        return Inertia::render('Dashboard', [
-            'month' => $monthDate->format('Y-m'),
-            'categories' => Category::all(),
-            'monthlyReport' => $this->buildMonthlyReport($start, $end),
-            'transactions' => $this->buildMonthlyTransactions($start, $end),
-        ]);
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | ANNUAL REPORTS
+    |--------------------------------------------------------------------------
+    */
 
     public function userAnnualReport(Request $request)
     {
         return $this->annualReport($request);
-    }
-
-    public function userCharityReport(Request $request)
-    {
-        return $this->charityIndex($request);
     }
 
     public function annualReport(Request $request)
@@ -89,7 +82,7 @@ class ReportController extends Controller
             'year' => (int) $year,
             'user' => auth()->user(),
             'categories' => Category::all(),
-            'categorySummary' => $this->categorySummary(request()),
+            'categorySummary' => $this->categorySummary($request),
         ]);
     }
 
@@ -100,7 +93,7 @@ class ReportController extends Controller
             $start = Carbon::create($year, $month, 1)->startOfMonth();
             $end = Carbon::create($year, $month, 1)->endOfMonth();
 
-            $query = $this->baseTransactionQuery($start, $end);
+            $query = Transaction::filtered($start, $end, auth()->user());
 
             $income = (clone $query)->where('type', 'income')->sum('amount');
             $expense = (clone $query)->where('type', 'expense')->sum('amount');
@@ -126,30 +119,20 @@ class ReportController extends Controller
         ];
     }
 
-    // ✅ CENTRAL QUERY (reusable for all reports)
-    private function baseTransactionQuery($start, $end)
-    {
-        $query = Transaction::with('category')
-            ->whereBetween('transaction_date', [$start, $end]);
-
-        // 👇 role-based filtering
-        if (auth()->user()->user_type === 'user') {
-            $query->whereHas('category', function ($q) {
-                $q->where('is_other', false);
-            });
-        }
-
-        return $query;
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | CATEGORY SUMMARY
+    |--------------------------------------------------------------------------
+    */
 
     public function categorySummary(Request $request)
     {
         $year = $request->year ?? now()->year;
 
-        $query = $this->baseTransactionQuery(
-            Carbon::create($year, 1, 1)->startOfYear(),
-            Carbon::create($year, 12, 31)->endOfYear()
-        );
+        $start = Carbon::create($year, 1, 1)->startOfYear();
+        $end = Carbon::create($year, 12, 31)->endOfYear();
+
+        $query = Transaction::filtered($start, $end, auth()->user());
 
         $categoryReport = $query->get()
             ->groupBy('category.name')
@@ -171,24 +154,15 @@ class ReportController extends Controller
         ];
     }
 
-    private function charityYearData($year)
+    /*
+    |--------------------------------------------------------------------------
+    | CHARITY
+    |--------------------------------------------------------------------------
+    */
+
+    public function userCharityReport(Request $request)
     {
-        $start = Carbon::create($year, 1, 1)->startOfYear();
-        $end = Carbon::create($year, 12, 31)->endOfYear();
-
-        $transactions = Transaction::with('category')
-            ->whereBetween('transaction_date', [$start, $end])
-            ->where('type', 'expense')
-            ->whereHas('category', function ($q) {
-                $q->where('is_tuition', true);
-            })
-            ->orderByDesc('transaction_date')
-            ->get();
-
-        return [
-            'expense' => $transactions->sum('amount'),
-            'transactions' => $transactions,
-        ];
+        return $this->charityIndex($request);
     }
 
     public function charityIndex(Request $request)
@@ -202,13 +176,48 @@ class ReportController extends Controller
         ]);
     }
 
+    private function charityYearData($year)
+    {
+        $start = Carbon::create($year, 1, 1)->startOfYear();
+        $end = Carbon::create($year, 12, 31)->endOfYear();
+
+        $transactions = Transaction::filtered($start, $end, auth()->user())
+            ->where('type', 'expense')
+            ->whereHas('category', function ($q) {
+                $q->where('is_tuition', true);
+            })
+            ->orderByDesc('transaction_date')
+            ->get();
+
+        return [
+            'expense' => $transactions->sum('amount'),
+            'transactions' => $transactions,
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | OTHERS
+    |--------------------------------------------------------------------------
+    */
+
+    public function otherIndex(Request $request)
+    {
+        $year = $request->year ?? now()->year;
+
+        return Inertia::render('transactions/Others', [
+            'otherStats' => $this->otherYearData($year),
+            'categories' => Category::where('is_other', true)->get(),
+            'year' => (int) $year,
+        ]);
+    }
+
     private function otherYearData($year)
     {
         $start = Carbon::create($year, 1, 1)->startOfYear();
         $end = Carbon::create($year, 12, 31)->endOfYear();
 
-        $transactions = Transaction::with('category')
-            ->whereBetween('transaction_date', [$start, $end])
+        $transactions = Transaction::filtered($start, $end, auth()->user())
             ->where('type', 'income')
             ->whereHas('category', function ($q) {
                 $q->where('is_other', true);
@@ -220,16 +229,5 @@ class ReportController extends Controller
             'income' => $transactions->sum('amount'),
             'transactions' => $transactions,
         ];
-    }
-
-    public function otherIndex(Request $request)
-    {
-        $year = $request->year ?? now()->year;
-
-        return Inertia::render('transactions/Others', [
-            'otherStats' => $this->otherYearData($year),
-            'categories' => Category::where('is_other', true)->get(),
-            'year' => (int) $year,
-        ]);
     }
 }

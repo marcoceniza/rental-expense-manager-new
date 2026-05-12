@@ -39,25 +39,22 @@ class Transaction extends Model
     /**
      * Scopes
      */
-    public function scopeDashboardVisible($query)
+    public function scopeFiltered($query, $start = null, $end = null, $user = null)
     {
-        return $query->whereHas('category', function ($q) {
-            $q->where('is_tuition', false)
-                ->where('is_other', false);
-        });
-    }
+        $user = $user ?? auth()->user();
 
-    public function scopeTuition($query)
-    {
-        return $query->whereHas('category', fn ($q) =>
-            $q->where('is_tuition', true)
-        );
-    }
+        $query->with('category');
 
-    public function scopeOther($query)
-    {
-        return $query->whereHas('category', fn ($q) =>
-            $q->where('is_other', true)
-        );
+        if ($start && $end) {
+            $query->whereBetween('transaction_date', [$start, $end]);
+        }
+
+        if (!$user->isAdmin()) {
+            $query->whereHas('category', function ($q) {
+                $q->where('is_other', false);
+            });
+        }
+
+        return $query;
     }
 }

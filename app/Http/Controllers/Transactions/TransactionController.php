@@ -18,27 +18,14 @@ class TransactionController extends Controller
     {
         return Inertia::render('transactions/Transactions', [
             'transactions' => Transaction::with('category')
-                ->whereHas('category', function ($query) {
-                    $query->where('is_other', false);
-                })
                 ->latest()
                 ->paginate(10),
-
             'categories' => Category::all(),
-
             'trashed' => Transaction::onlyTrashed()
                 ->with('category')
-                ->whereHas('category', function ($query) {
-                    $query->where('is_other', false);
-                })
                 ->latest()
                 ->paginate(10),
-
-            'trashedCount' => Transaction::onlyTrashed()
-                ->whereHas('category', function ($query) {
-                    $query->where('is_other', false);
-                })
-                ->count(),
+            'trashedCount' => Transaction::onlyTrashed()->count(),
         ]);
     }
 
@@ -49,14 +36,9 @@ class TransactionController extends Controller
     {
         return Inertia::render('transactions/Transactions', [
             'transactions' => Transaction::with('category')
-                ->dashboardVisible()
+                ->filtered(null, null, auth()->user())
                 ->latest()
                 ->paginate(15),
-            'categories' => Category::where('is_tuition', false)
-                ->where('is_other', false)
-                ->get(),
-            'trashed' => ['data' => []],
-            'trashedCount' => 0,
         ]);
     }
 
@@ -66,8 +48,7 @@ class TransactionController extends Controller
     public function store(StoreTransactionRequest $request)
     {
         Transaction::create($request->validated());
-
-        $redirect = $request->input('redirect', 'transactions.index');
+        $redirect = $request->input('redirect', 'admin.transactions.index');
 
         return redirect()->route($redirect)
             ->with('success', 'Transaction created successfully.');
@@ -79,8 +60,7 @@ class TransactionController extends Controller
     public function update(UpdateTransactionRequest $request, Transaction $transaction)
     {
         $transaction->update($request->validated());
-
-        $redirect = $request->input('redirect', 'transactions.index');
+        $redirect = $request->input('redirect', 'admin.transactions.index');
 
         return redirect()->route($redirect)
             ->with('success', 'Transaction updated successfully.');
@@ -92,8 +72,7 @@ class TransactionController extends Controller
     public function destroy(Transaction $transaction)
     {
         $transaction->delete();
-
-        $redirect = request()->input('redirect', 'transactions.index');
+        $redirect = request()->input('redirect', 'admin.transactions.index');
 
         return redirect()->route($redirect)
             ->with('success', 'Transaction deleted successfully.');

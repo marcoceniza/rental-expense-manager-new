@@ -44,7 +44,7 @@ const applyChange = (date: Date) => {
     const formatted = date.toISOString().slice(0, 7)
 
     router.get(
-        '/dashboard',
+        '/admin/dashboard',
         { month: formatted },
         {
             preserveState: true,
@@ -272,7 +272,7 @@ const monthlyDonutOptions = {
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold">
+                                    <span class="px-2.5 py-1 text-slate-900 rounded-full text-xs font-semibold">
                                         {{ categoryMap[t.category_id] || 'Uncategorized' }}
                                     </span>
                                 </td>

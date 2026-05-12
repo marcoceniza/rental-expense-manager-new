@@ -2,9 +2,10 @@ import { computed } from 'vue'
 import { usePage } from '@inertiajs/vue3'
 import { route } from 'ziggy-js'
 import{ LayoutDashboard, ReceiptText, Repeat, FileChartPie, Tag, LayoutGrid, Heart, UserPlus } from 'lucide-vue-next'
+import { SharedData } from '@/types'
 
 export function useNavItems() {
-    const page = usePage()
+    const page = usePage<SharedData>()
 
     const navItems = computed(() => {
         const user = page.props.auth?.user

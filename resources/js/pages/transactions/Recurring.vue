@@ -64,12 +64,12 @@ const closeModal = () => {
 
 const handleSubmit = () => {
     if (isEditMode.value) {
-        router.put(route('recurring.update', { recurring: editingId.value }), formData.value, {
+        router.put(route('admin.recurring.update', { recurring: editingId.value }), formData.value, {
             preserveScroll: true,
             onSuccess: () => closeModal()
         })
     } else {
-        router.post(route('recurring.store'), formData.value, {
+        router.post(route('admin.recurring.store'), formData.value, {
             preserveScroll: true,
             onSuccess: () => closeModal()
         })
@@ -78,7 +78,7 @@ const handleSubmit = () => {
 
 const deleteRecurring = (id) => {
     if (confirm('Are you sure you want to delete this recurring transaction?')) {
-        router.delete(route('recurring.destroy', { recurring: id }), {
+        router.delete(route('admin.recurring.destroy', { recurring: id }), {
             preserveScroll: true,
         })
     }

@@ -183,7 +183,7 @@ const handleSubmit = () => {
 	isSubmitting.value = true
 
 	if (editingId.value) {
-		form.put(route('transactions.update', { transaction: editingId.value }), {
+		form.put(route('admin.transactions.update', { transaction: editingId.value }), {
 			preserveScroll: true,
 			onFinish: () => {
 				isSubmitting.value = false
@@ -191,7 +191,7 @@ const handleSubmit = () => {
 			},
 		})
 	} else {
-		form.post(route('transactions.store'), {
+		form.post(route('admin.transactions.store'), {
 			preserveScroll: true,
 			onFinish: () => {
 				isSubmitting.value = false
@@ -208,7 +208,7 @@ const confirmDeleteHandler = (id: number, name: string) => {
 const deleteTransaction = () => {
     if (!confirmDelete.value.id) return
 
-    form.delete(route('transactions.destroy', {
+    form.delete(route('admin.transactions.destroy', {
         transaction: confirmDelete.value.id,
         redirect: 'admin.others',
     }), {

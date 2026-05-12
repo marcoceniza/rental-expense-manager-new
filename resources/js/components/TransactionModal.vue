@@ -89,7 +89,7 @@ const handleSubmit = () => emit("submit");
                                 :loading="loading"
                                 :disabled="loading"
                             >
-                                Update
+                                {{ editingId ? 'Update' : 'Save' }}
                             </BaseButton>
                         </div>
 

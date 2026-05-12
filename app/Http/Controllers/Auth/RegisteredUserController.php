@@ -49,6 +49,6 @@ class RegisteredUserController extends Controller
 
         // return to_route('dashboard');
 
-        return to_route('register')->with('success', 'Created user successfully.');
+        return to_route('admin.register')->with('success', 'Created user successfully.');
     }
 }

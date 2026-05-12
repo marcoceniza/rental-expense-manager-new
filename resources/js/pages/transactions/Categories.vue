@@ -16,6 +16,13 @@ interface CategoryType {
     label: string;
 }
 
+type CategoryForm = {
+    name: string
+    type: string
+    is_tuition: boolean
+    is_other: boolean
+}
+
 const props = defineProps<{
     categories: Category[];
 }>()
@@ -39,7 +46,7 @@ const getConfirmDeleteData = ref<{ id: number | null; name: string }>({
 
 const selectedCategory = ref<Category | undefined>(undefined)
 
-const form = useForm({
+const form = useForm<CategoryForm>({
     name: '',
     type: 'expense',
     is_tuition: false,
@@ -90,12 +97,12 @@ const handleSubmit = async () => {
 
     try {
         if (editingId.value) {
-            form.put(route('categories.update', { category: editingId.value }), {
+            form.put(route('admin.categories.update', { category: editingId.value }), {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
             })
         } else {
-            form.post(route('categories.store'), {
+            form.post(route('admin.categories.store'), {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
             })
@@ -111,7 +118,7 @@ const confirmDeleteHandler = (id: number, name: string) => {
 }
 
 const deleteCategory = () => {
-    router.delete(route('categories.destroy', { category: getConfirmDeleteData.value.id }), {
+    router.delete(route('admin.categories.destroy', { category: getConfirmDeleteData.value.id }), {
         onSuccess: () => {
             isShowingDeleteConfirm.value = false
         },

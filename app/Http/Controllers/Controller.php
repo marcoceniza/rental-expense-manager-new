@@ -6,7 +6,7 @@ abstract class Controller
 {
     protected function dashboardRedirect(): string
     {
-        if (auth()->check() && auth()->user()->user_type === 'admin') {
+        if (auth()->check() && auth()->user()->isAdmin()) {
             return route('admin.dashboard', absolute: false);
         }
 

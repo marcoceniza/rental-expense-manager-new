@@ -117,12 +117,12 @@ const closeModal = () => {
 
 const handleSubmit = () => {
     if (editingId.value) {
-        form.put(route('transactions.update', { transaction: editingId.value }), {
+        form.put(route('admin.transactions.update', { transaction: editingId.value }), {
             preserveScroll: true,
             onSuccess: () => closeModal()
         })
     } else {
-        form.post(route('transactions.store'), {
+        form.post(route('admin.transactions.store'), {
             preserveScroll: true,
             onSuccess: () => closeModal()
         })
@@ -140,7 +140,7 @@ const confirmDeleteHandler = (id: number, name: string) => {
 const deleteTransaction = () => {
     if (!confirmDelete.value.id) return
 
-    form.delete(route('transactions.destroy', {
+    form.delete(route('admin.transactions.destroy', {
         transaction: confirmDelete.value.id
     }), {
         preserveScroll: true,
@@ -151,13 +151,13 @@ const deleteTransaction = () => {
 }
 
 const restoreTransaction = (id: number) => {
-    form.patch(route('transactions.restore', { transaction: id }), {
+    form.patch(route('admin.transactions.restore', { id: id }), {
         preserveScroll: true
     })
 }
 
 const deletePermanent = (id: number) => {
-    form.delete(route('transactions.force-delete', { transaction: id }), {
+    form.delete(route('admin.transactions.force-delete', { id: id }), {
         preserveScroll: true
     })
 }
