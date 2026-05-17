@@ -18,12 +18,14 @@ class TransactionController extends Controller
     {
         return Inertia::render('transactions/Transactions', [
             'transactions' => Transaction::with('category')
-                ->latest()
+                ->orderByDesc('transaction_date')
+                ->orderByDesc('created_at')
                 ->paginate(10),
             'categories' => Category::all(),
             'trashed' => Transaction::onlyTrashed()
                 ->with('category')
-                ->latest()
+                ->orderByDesc('transaction_date')
+                ->orderByDesc('created_at')
                 ->paginate(10),
             'trashedCount' => Transaction::onlyTrashed()->count(),
         ]);
@@ -37,8 +39,12 @@ class TransactionController extends Controller
         return Inertia::render('transactions/Transactions', [
             'transactions' => Transaction::with('category')
                 ->filtered(null, null, auth()->user())
-                ->latest()
+                ->orderByDesc('transaction_date')
+                ->orderByDesc('created_at')
                 ->paginate(15),
+            'categories' => Category::where('is_other', false)->get(),
+            'trashed' => [],
+            'trashedCount' => 0,
         ]);
     }
 

@@ -42,6 +42,7 @@ class ReportController extends Controller
             'monthlyReport' => $this->buildMonthlyReport($start, $end),
             'transactions' => Transaction::filtered($start, $end, auth()->user())
                 ->orderByDesc('transaction_date')
+                ->orderByDesc('created_at')
                 ->get(),
         ];
     }

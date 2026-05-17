@@ -5,6 +5,7 @@ import { subMonths, addMonths, format, parseISO } from 'date-fns'
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, LayoutDashboard } from 'lucide-vue-next'
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { Link } from '@inertiajs/vue3'
 
 defineOptions({
     layout: AppLayout,
@@ -238,6 +239,12 @@ const monthlyDonutOptions = {
             <div class="lg:w-4/5 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-slate-900">Recent Activity</h3>
+                    <Link
+                        href="/admin/transactions"
+                        class="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors cursor-pointer"
+                    >
+                        View All
+                    </Link>
                 </div>
 
                 <div class="overflow-x-auto">

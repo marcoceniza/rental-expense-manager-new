@@ -97,10 +97,7 @@ const openModal = (t: any = null) => {
     if (t) {
         editingId.value = t.id
         form.clearErrors()
-        form.defaults({
-            ...t,
-            transaction_date: format(parseISO(t.transaction_date), 'yyyy-MM-dd')
-        })
+        form.defaults(t)
         form.reset()
     } else {
         editingId.value = null
@@ -113,6 +110,8 @@ const openModal = (t: any = null) => {
 
 const closeModal = () => {
     showModal.value = false
+	editingId.value = null
+    form.reset()
 }
 
 const handleSubmit = () => {
