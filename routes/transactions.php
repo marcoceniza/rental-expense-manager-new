@@ -5,8 +5,8 @@ use App\Http\Controllers\Transactions\CategoryController;
 use App\Http\Controllers\Transactions\RecurringController;
 use App\Http\Controllers\Transactions\ReportController;
 use App\Http\Controllers\Transactions\TransactionController;
-use App\Models\Category;
 use App\Models\Recurring;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -71,7 +71,7 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'admin'])->group(fun
     Route::get('/recurring', function () {
         return Inertia::render('transactions/Recurring', [
             'recurringTransactions' => Recurring::with('category')->get(),
-            'categories' => Category::all(),
+            'categories' => Transaction::recurringCategoryOptions(),
         ]);
     })->name('recurring');
 

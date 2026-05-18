@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class Transaction extends Model
 {
@@ -57,5 +58,31 @@ class Transaction extends Model
         }
 
         return $query;
+    }
+
+    public static function recurringCategoryOptions(): Collection
+    {
+        return self::with('category')
+            ->orderByDesc('transaction_date')
+            ->get()
+            ->filter(fn ($transaction) => $transaction->category)
+            ->groupBy(fn ($transaction) => $transaction->category_id)
+            ->map(function ($transactions) {
+                $category = $transactions->first()->category;
+
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'type' => $category->type,
+                    'transaction_descriptions' => $transactions
+                        ->map(fn ($transaction) => [
+                            'description' => $transaction->description,
+                            'amount' => $transaction->amount,
+                        ])
+                        ->unique(fn ($transaction) => $transaction['description'])
+                        ->values(),
+                ];
+            })
+            ->values();
     }
 }

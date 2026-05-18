@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
-import { Plus, Trash2, Repeat, Pencil, X, Check } from 'lucide-vue-next'
+import { Plus, Trash2, Repeat, Pencil } from 'lucide-vue-next'
 import AppLayout from '@/layouts/AppLayout.vue'
+import RecurringModal from '@/components/RecurringModal.vue'
 
 defineOptions({
     layout: AppLayout,
@@ -14,11 +15,16 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    errors: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const showModal = ref(false)
 const isEditMode = ref(false)
 const editingId = ref(null)
+const loading = ref(false)
 
 const formData = ref({
     category_id: '',
@@ -66,16 +72,20 @@ const closeModal = () => {
 }
 
 const handleSubmit = () => {
+    loading.value = true
+
+    const options = {
+        preserveScroll: true,
+        onSuccess: () => closeModal(),
+        onFinish: () => {
+            loading.value = false
+        },
+    }
+
     if (isEditMode.value) {
-        router.put(route('admin.recurring.update', { recurring: editingId.value }), formData.value, {
-            preserveScroll: true,
-            onSuccess: () => closeModal()
-        })
+        router.put(route('admin.recurring.update', { recurring: editingId.value }), formData.value, options)
     } else {
-        router.post(route('admin.recurring.store'), formData.value, {
-            preserveScroll: true,
-            onSuccess: () => closeModal()
-        })
+        router.post(route('admin.recurring.store'), formData.value, options)
     }
 }
 
@@ -89,6 +99,14 @@ const deleteRecurring = (id) => {
 
 const safeCategories = computed(() => props.categories || [])
 
+const selectedCategory = computed(() => {
+    return safeCategories.value.find((category) => category.id === formData.value.category_id)
+})
+
+const descriptionOptions = computed(() => {
+    return selectedCategory.value?.transaction_descriptions ?? []
+})
+
 const categoryMap = computed(() => {
     const map = {}
     safeCategories.value.forEach(c => {
@@ -96,6 +114,50 @@ const categoryMap = computed(() => {
     })
     return map
 })
+
+watch(
+    () => formData.value.category_id,
+    (categoryId, previousCategoryId) => {
+        if (!categoryId || categoryId === previousCategoryId) {
+            return
+        }
+
+        const selectedCategory = safeCategories.value.find((category) => category.id === categoryId)
+
+        if (!selectedCategory) {
+            formData.value.description = ''
+            formData.value.amount = 0
+            return
+        }
+
+        if (selectedCategory.transaction_descriptions?.length) {
+            const option = selectedCategory.transaction_descriptions[0]
+            formData.value.description = option.description
+            formData.value.amount = option.amount
+            return
+        }
+
+        formData.value.description = selectedCategory.description ?? ''
+        formData.value.amount = selectedCategory.amount ?? 0
+    }
+)
+
+watch(
+    () => formData.value.description,
+    (description) => {
+        if (!description || !descriptionOptions.value.length) {
+            return
+        }
+
+        const selectedOption = descriptionOptions.value.find(
+            (option) => option.description === description
+        )
+
+        if (selectedOption) {
+            formData.value.amount = selectedOption.amount
+        }
+    }
+)
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
@@ -207,111 +269,15 @@ const formatCurrency = (amount) => {
 
         </div>
 
-        <div
-            v-if="showModal"
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
-        >
-            <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-
-                <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                    <h3 class="text-xl font-bold text-slate-900">
-                        {{ isEditMode ? 'Edit Recurring Entry' : 'New Recurring Entry' }}
-                    </h3>
-
-                    <button
-                        @click="closeModal"
-                        class="p-2 hover:bg-white rounded-lg transition-colors cursor-pointer"
-                    >
-                        <X class="w-5 h-5 text-slate-400" />
-                    </button>
-                </div>
-
-                <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
-
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Category</label>
-                        <select
-                            v-model="formData.category_id"
-                            required
-                            class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                        >
-                            <option value="" disabled>Select a category</option>
-
-                            <option
-                                v-for="c in safeCategories"
-                                :key="c.id"
-                                :value="c.id"
-                            >
-                                {{ c.name }} ({{ c.type }})
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Description</label>
-                        <input
-                            v-model="formData.description"
-                            type="text"
-                            required
-                            placeholder="e.g., Monthly Rent"
-                            class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                        />
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-slate-500 uppercase">Amount (PHP)</label>
-                            <input
-                                v-model.number="formData.amount"
-                                type="number"
-                                required
-                                class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-lg"
-                            />
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-slate-500 uppercase">Frequency</label>
-                            <select
-                                v-model="formData.frequency"
-                                disabled
-                                class="w-full px-4 py-3 bg-slate-100 border-none rounded-xl font-medium text-slate-500"
-                            >
-                                <option value="monthly">Monthly</option>
-                            </select>
-                        </div>
-
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Start Date</label>
-                        <input
-                            v-model="formData.start_date"
-                            type="date"
-                            required
-                            class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                        />
-                    </div>
-
-                    <div class="pt-4 flex gap-3">
-                        <button
-                            type="button"
-                            @click="closeModal"
-                            class="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors cursor-pointer"
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            type="submit"
-                            class="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                            <Check class="w-5 h-5" />
-                            {{ isEditMode ? 'Update' : 'Save Recurring' }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <RecurringModal
+            v-model:isOpen="showModal"
+            :editingId="editingId"
+            :formData="formData"
+            :categories="safeCategories"
+            :loading="loading"
+            :errors="props.errors"
+            @close="closeModal"
+            @submit="handleSubmit"
+        />
     </div>
 </template>
