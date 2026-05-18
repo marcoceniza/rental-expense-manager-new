@@ -19,11 +19,64 @@ const goToPage = (url) => {
 }
 
 const visiblePages = computed(() => {
-    return props.pagination.links.filter(
+    const allPages = props.pagination.links.filter(
         (link) =>
             link.label !== '&laquo; Previous' &&
             link.label !== 'Next &raquo;'
     )
+
+    const currentPage = props.pagination.current_page
+    const lastPage = props.pagination.last_page
+
+    // If total pages <= 5, show all pages
+    if (lastPage <= 5) {
+        return allPages
+    }
+
+    const pages = []
+    const addedPages = new Set()
+
+    // Helper function to add page without duplicates
+    const addPage = (pageNum) => {
+        if (pageNum >= 1 && pageNum <= lastPage && !addedPages.has(pageNum)) {
+            pages.push(allPages[pageNum - 1])
+            addedPages.add(pageNum)
+        }
+    }
+
+    // Helper function to add ellipsis
+    const addEllipsis = () => {
+        pages.push({ label: '...', url: null, active: false })
+    }
+
+    // Always show first 2 pages
+    addPage(1)
+    addPage(2)
+
+    // Determine the range around current page
+    const rangeStart = Math.max(3, currentPage - 1)
+    const rangeEnd = Math.min(lastPage - 2, currentPage + 1)
+
+    // Add ellipsis if there's a gap after first 2 pages
+    if (rangeStart > 3) {
+        addEllipsis()
+    }
+
+    // Add pages around current page
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+        addPage(i)
+    }
+
+    // Add ellipsis if there's a gap before last 2 pages
+    if (rangeEnd < lastPage - 2) {
+        addEllipsis()
+    }
+
+    // Always show last 2 pages
+    addPage(lastPage - 1)
+    addPage(lastPage)
+
+    return pages
 })
 </script>
 
@@ -50,15 +103,19 @@ const visiblePages = computed(() => {
             </button>
 
             <button
-                v-for="link in visiblePages"
-                :key="link.label"
+                v-for="(link, index) in visiblePages"
+                :key="`${link.label}-${index}`"
                 v-html="link.label"
                 @click="goToPage(link.url)"
                 :disabled="!link.url"
-                class="px-3 py-2 rounded-lg text-sm cursor-pointer"
-                :class="link.active
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 hover:bg-slate-100'"
+                class="px-3 py-2 rounded-lg text-sm"
+                :class="[
+                    link.label === '...' 
+                        ? 'text-slate-400 cursor-default' 
+                        : link.active
+                            ? 'bg-blue-600 text-white cursor-pointer'
+                            : 'text-slate-600 hover:bg-slate-100 cursor-pointer'
+                ]"
             />
 
             <button

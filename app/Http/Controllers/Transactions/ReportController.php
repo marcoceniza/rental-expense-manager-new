@@ -182,17 +182,16 @@ class ReportController extends Controller
         $start = Carbon::create($year, 1, 1)->startOfYear();
         $end = Carbon::create($year, 12, 31)->endOfYear();
 
-        $transactions = Transaction::filtered($start, $end, auth()->user())
+        $query = Transaction::filtered($start, $end, auth()->user())
             ->where('type', 'expense')
             ->whereHas('category', function ($q) {
                 $q->where('is_tuition', true);
             })
-            ->orderByDesc('transaction_date')
-            ->get();
+            ->orderByDesc('transaction_date');
 
         return [
-            'expense' => $transactions->sum('amount'),
-            'transactions' => $transactions,
+            'expense' => (clone $query)->sum('amount'),
+            'transactions' => $query->paginate(10),
         ];
     }
 
@@ -218,17 +217,16 @@ class ReportController extends Controller
         $start = Carbon::create($year, 1, 1)->startOfYear();
         $end = Carbon::create($year, 12, 31)->endOfYear();
 
-        $transactions = Transaction::filtered($start, $end, auth()->user())
+        $query = Transaction::filtered($start, $end, auth()->user())
             ->where('type', 'income')
             ->whereHas('category', function ($q) {
                 $q->where('is_other', true);
             })
-            ->orderByDesc('transaction_date')
-            ->get();
+            ->orderByDesc('transaction_date');
 
         return [
-            'income' => $transactions->sum('amount'),
-            'transactions' => $transactions,
+            'income' => (clone $query)->sum('amount'),
+            'transactions' => $query->paginate(10),
         ];
     }
 }

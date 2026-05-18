@@ -10,7 +10,10 @@ defineOptions({
 
 const props = defineProps({
     recurringTransactions: Array,
-    categories: Array,
+    categories: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const showModal = ref(false)
@@ -84,9 +87,11 @@ const deleteRecurring = (id) => {
     }
 }
 
+const safeCategories = computed(() => props.categories || [])
+
 const categoryMap = computed(() => {
     const map = {}
-    props.categories.forEach(c => {
+    safeCategories.value.forEach(c => {
         map[c.id] = c.name
     })
     return map
@@ -233,7 +238,7 @@ const formatCurrency = (amount) => {
                             <option value="" disabled>Select a category</option>
 
                             <option
-                                v-for="c in props.categories"
+                                v-for="c in safeCategories"
                                 :key="c.id"
                                 :value="c.id"
                             >

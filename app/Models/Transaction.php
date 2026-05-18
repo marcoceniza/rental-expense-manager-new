@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Transaction extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -49,7 +50,7 @@ class Transaction extends Model
             $query->whereBetween('transaction_date', [$start, $end]);
         }
 
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             $query->whereHas('category', function ($q) {
                 $q->where('is_other', false);
             });

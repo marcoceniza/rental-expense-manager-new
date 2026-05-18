@@ -6,6 +6,7 @@ import { LayoutGrid, ArrowUpRight, ArrowDownRight, Pencil, Trash2 } from 'lucide
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
 import ConfirmDelete from '@/components/ConfirmDelete.vue'
 import OthersModal from '@/components/OthersModal.vue'
+import BasePagination from '@/components/base/BasePagination.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 defineOptions({
@@ -27,9 +28,24 @@ interface Transaction {
     category_id: number
 }
 
+interface PaginatedData<T> {
+    data: T[]
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    prev_page_url: string | null
+    next_page_url: string | null
+    links: Array<{
+        url: string | null
+        label: string
+        active: boolean
+    }>
+}
+
 interface OtherStats {
     income: number
-    transactions: Transaction[]
+    transactions: PaginatedData<Transaction>
 }
 
 const props = defineProps<{
@@ -281,13 +297,13 @@ const deleteTransaction = () => {
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
-                        <tr v-if="!(props.otherStats?.transactions?.length)">
+                        <tr v-if="!(props.otherStats?.transactions?.data?.length)">
                             <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
                                 No transaction others found.
                             </td>
                         </tr>
                         <tr
-                            v-for="t in (props.otherStats?.transactions ?? [])"
+                            v-for="t in (props.otherStats?.transactions?.data ?? [])"
                             :key="t.id"
                             class="hover:bg-slate-50 transition-colors group"
                         >
@@ -340,6 +356,10 @@ const deleteTransaction = () => {
                         </tr>
                     </tbody>
                 </table>
+                <BasePagination
+                    v-if="otherStats.transactions.last_page > 1"
+                    :pagination="otherStats.transactions"
+                />
             </div>
         </div>
 

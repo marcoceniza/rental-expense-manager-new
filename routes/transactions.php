@@ -5,6 +5,7 @@ use App\Http\Controllers\Transactions\CategoryController;
 use App\Http\Controllers\Transactions\RecurringController;
 use App\Http\Controllers\Transactions\ReportController;
 use App\Http\Controllers\Transactions\TransactionController;
+use App\Models\Category;
 use App\Models\Recurring;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,7 +38,7 @@ Route::middleware(['auth', 'user'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::name('admin.')->prefix('admin')->middleware(['auth','admin'])->group(function (){
+Route::name('admin.')->prefix('admin')->middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/dashboard', [ReportController::class, 'index'])
         ->name('dashboard');
@@ -70,6 +71,7 @@ Route::name('admin.')->prefix('admin')->middleware(['auth','admin'])->group(func
     Route::get('/recurring', function () {
         return Inertia::render('transactions/Recurring', [
             'recurringTransactions' => Recurring::with('category')->get(),
+            'categories' => Category::all(),
         ]);
     })->name('recurring');
 

@@ -33,6 +33,7 @@ const props = defineProps<{
     trashed: PaginatedData<Transaction>
     trashedCount: number
     auth: Auth
+    currentDate: string
 }>()
 
 const searchQuery = ref('')
@@ -42,7 +43,7 @@ const showTrashModal = ref(false)
 const editingId = ref<number | null>(null)
 
 const form = useForm({
-    transaction_date: format(new Date(), 'yyyy-MM-dd'),
+    transaction_date: props.currentDate,
     type: 'income',
     category_id: '',
     description: '',
@@ -103,6 +104,7 @@ const openModal = (t: any = null) => {
         editingId.value = null
         form.clearErrors()
         form.reset()
+        form.transaction_date = props.currentDate
     }
 
     showModal.value = true

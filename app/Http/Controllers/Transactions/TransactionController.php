@@ -28,6 +28,7 @@ class TransactionController extends Controller
                 ->orderByDesc('created_at')
                 ->paginate(10),
             'trashedCount' => Transaction::onlyTrashed()->count(),
+            'currentDate' => now()->format('Y-m-d'),
         ]);
     }
 
@@ -45,6 +46,7 @@ class TransactionController extends Controller
             'categories' => Category::where('is_other', false)->get(),
             'trashed' => [],
             'trashedCount' => 0,
+            'currentDate' => now()->format('Y-m-d'),
         ]);
     }
 

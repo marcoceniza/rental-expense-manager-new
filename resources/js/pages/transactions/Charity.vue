@@ -8,6 +8,7 @@ import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
 import ConfirmDelete from '@/components/ConfirmDelete.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CharityModal from '@/components/CharityModal.vue'
+import BasePagination from '@/components/base/BasePagination.vue'
 import type { SharedData } from '@/types'
 
 defineOptions({
@@ -30,9 +31,24 @@ interface Transaction {
     category_id: number
 }
 
+interface PaginatedData<T> {
+    data: T[]
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    prev_page_url: string | null
+    next_page_url: string | null
+    links: Array<{
+        url: string | null
+        label: string
+        active: boolean
+    }>
+}
+
 interface CharityStats {
     expense: number
-    transactions: Transaction[]
+    transactions: PaginatedData<Transaction>
 }
 
 const props = defineProps<{
@@ -297,7 +313,7 @@ const formatCurrency = (amount: number) => {
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
-                        <tr v-if="(props.charityStats?.transactions ?? []).length === 0">
+                        <tr v-if="(props.charityStats?.transactions?.data ?? []).length === 0">
                             <td
                                 :colspan="isAdmin ? 5 : 4"
                                 class="px-6 py-12 text-center text-slate-400 italic"
@@ -308,7 +324,7 @@ const formatCurrency = (amount: number) => {
 
                         <tr
                             v-else
-                            v-for="t in props.charityStats.transactions"
+                            v-for="t in props.charityStats.transactions.data"
                             :key="t.id"
                             class="hover:bg-slate-50 transition-colors group"
                         >
@@ -370,6 +386,10 @@ const formatCurrency = (amount: number) => {
                         </tr>
                     </tbody>
                 </table>
+                <BasePagination
+                    v-if="charityStats.transactions.last_page > 1"
+                    :pagination="charityStats.transactions"
+                />
             </div>
         </div>
 

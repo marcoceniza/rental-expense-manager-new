@@ -80,8 +80,10 @@ const formatCurrency = (amount) => {
 }
 
 const pdfCurrency = (value) => {
-    const num = Number(value) || 0
-    return `PHP ${num.toFixed(2)}`
+    return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`
 }
 
 const exportPDF = () => {
@@ -117,6 +119,17 @@ const exportPDF = () => {
             pdfCurrency(annualStats.value.totals.liability),
             pdfCurrency(annualStats.value.totals.net),
         ]],
+
+        styles: {
+            fontSize: 10,
+        },
+
+        columnStyles: {
+            1: { halign: 'right' },
+            2: { halign: 'right' },
+            3: { halign: 'right' },
+            4: { halign: 'right' },
+        },
     })
 
     doc.save(`Financial_Report_${year}.pdf`)
