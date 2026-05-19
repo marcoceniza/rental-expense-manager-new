@@ -5,10 +5,7 @@ use App\Http\Controllers\Transactions\CategoryController;
 use App\Http\Controllers\Transactions\RecurringController;
 use App\Http\Controllers\Transactions\ReportController;
 use App\Http\Controllers\Transactions\TransactionController;
-use App\Models\Recurring;
-use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,9 +49,9 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'admin'])->group(fun
     Route::get('/reports', [ReportController::class, 'annualReport'])
         ->name('reports');
 
-    Route::resource('categories', CategoryController::class);
+    Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
 
-    Route::resource('transactions', TransactionController::class);
+    Route::resource('transactions', TransactionController::class)->only(['index', 'store', 'update', 'destroy']);
 
     Route::patch('categories/{id}/restore', [CategoryController::class, 'restore'])
         ->name('categories.restore');
@@ -68,21 +65,7 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'admin'])->group(fun
     Route::delete('transactions/{id}/force-delete', [TransactionController::class, 'forceDelete'])
         ->name('transactions.force-delete');
 
-    Route::get('/recurring', function () {
-        return Inertia::render('transactions/Recurring', [
-            'recurringTransactions' => Recurring::with('category')->get(),
-            'categories' => Transaction::recurringCategoryOptions(),
-        ]);
-    })->name('recurring');
-
-    Route::post('/recurring', [RecurringController::class, 'store'])
-        ->name('recurring.store');
-
-    Route::put('/recurring/{recurring}', [RecurringController::class, 'update'])
-        ->name('recurring.update');
-
-    Route::delete('/recurring/{recurring}', [RecurringController::class, 'destroy'])
-        ->name('recurring.destroy');
+    Route::resource('recurring', RecurringController::class)->only(['index', 'store', 'update', 'destroy']);
 
     Route::get('/register', [RegisteredUserController::class, 'create'])
         ->name('register');

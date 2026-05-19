@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, Link } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import { subMonths, addMonths, format, parseISO } from 'date-fns'
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, LayoutDashboard } from 'lucide-vue-next'
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { Link } from '@inertiajs/vue3'
 
 defineOptions({
     layout: AppLayout,
@@ -45,7 +45,7 @@ const applyChange = (date: Date) => {
     const formatted = date.toISOString().slice(0, 7)
 
     router.get(
-        '/admin/dashboard',
+        route('admin.dashboard'),
         { month: formatted },
         {
             preserveState: true,
@@ -240,7 +240,7 @@ const monthlyDonutOptions = {
                 <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-slate-900">Recent Activity</h3>
                     <Link
-                        href="/admin/transactions"
+                        :href="route('admin.transactions.index')"
                         class="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors cursor-pointer"
                     >
                         View All

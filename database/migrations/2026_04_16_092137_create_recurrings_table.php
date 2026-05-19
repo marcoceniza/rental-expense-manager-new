@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('frequency');
             $table->timestamp('start_date');
             $table->string('description');
-        
+
             // 🔥 Improvements
             $table->boolean('is_active')->default(true);
             $table->timestamp('last_generated_at')->nullable();

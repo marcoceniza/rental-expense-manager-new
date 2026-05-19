@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Recurring;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class GenerateRecurring extends Command
 {
@@ -50,6 +50,7 @@ class GenerateRecurring extends Command
                 'amount' => $recurring->amount,
                 'description' => $recurring->description,
                 'transaction_date' => $today,
+                'type' => 'expense',
                 'recurring_id' => $recurring->id,
                 'is_recurring_generated' => true,
             ]);

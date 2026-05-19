@@ -291,8 +291,8 @@ const deleteTransaction = () => {
                             <th class="px-6 py-4">Date</th>
                             <th class="px-6 py-4">Description</th>
                             <th class="px-6 py-4">Category</th>
-                            <th class="px-6 py-4 text-right">Amount</th>
-                            <th class="px-6 py-4">Actions</th>
+                            <th class="px-6 py-4">Amount</th>
+                            <th class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
 
@@ -326,7 +326,7 @@ const deleteTransaction = () => {
                                 </span>
                             </td>
 
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4">
                                 <span
                                     class="text-sm font-bold"
                                     :class="t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'"

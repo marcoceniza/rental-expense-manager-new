@@ -10,7 +10,7 @@ class UserMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->isUser()) {
+        if (! $request->user() || ! $request->user()->isUser()) {
             abort(403, 'Unauthorized');
         }
 
