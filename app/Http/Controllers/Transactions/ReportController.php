@@ -191,7 +191,7 @@ class ReportController extends Controller
 
         return [
             'expense' => (clone $query)->sum('amount'),
-            'transactions' => $query->paginate(10),
+            'transactions' => $query->paginate(15),
         ];
     }
 
@@ -226,7 +226,7 @@ class ReportController extends Controller
 
         return [
             'income' => (clone $query)->sum('amount'),
-            'transactions' => $query->paginate(10),
+            'transactions' => $query->paginate(15),
         ];
     }
 }

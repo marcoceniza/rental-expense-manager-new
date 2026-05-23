@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { router, useForm } from '@inertiajs/vue3'
-import { Plus, Search, Pencil, Trash2, Tag, Filter } from 'lucide-vue-next'
-import ConfirmDelete from '@/components/ConfirmDelete.vue'
-import CategoryModal from '@/components/CategoryModal.vue'
-import AppLayout from '@/layouts/AppLayout.vue'
-import type { Category } from '@/types'
+import CategoryModal from '@/components/CategoryModal.vue';
+import ConfirmDelete from '@/components/ConfirmDelete.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { Category } from '@/types';
+import { router, useForm } from '@inertiajs/vue3';
+import { Filter, Pencil, Plus, Search, Tag, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 defineOptions({
     layout: AppLayout,
-})
+});
 
 interface CategoryType {
     value: string;
@@ -17,154 +17,150 @@ interface CategoryType {
 }
 
 type CategoryForm = {
-    name: string
-    type: string
-    is_tuition: boolean
-    is_other: boolean
-}
+    name: string;
+    type: string;
+    is_tuition: boolean;
+    is_other: boolean;
+};
 
 const props = defineProps<{
     categories: Category[];
-}>()
+}>();
 
 const categoryTypes: CategoryType[] = [
     { value: 'income', label: 'Income' },
     { value: 'expense', label: 'Expense' },
     { value: 'liability', label: 'Liability' },
-]
+];
 
-const showCategoryModal = ref<boolean>(false)
-const editingId = ref<number | null>(null)
-const searchQuery = ref<string>('')
-const typeFilter = ref<string>('all')
+const showCategoryModal = ref<boolean>(false);
+const editingId = ref<number | null>(null);
+const searchQuery = ref<string>('');
+const typeFilter = ref<string>('all');
 
-const isShowingDeleteConfirm = ref<boolean>(false)
+const isShowingDeleteConfirm = ref<boolean>(false);
 const getConfirmDeleteData = ref<{ id: number | null; name: string }>({
     id: null,
     name: '',
-})
+});
 
-const selectedCategory = ref<Category | undefined>(undefined)
+const selectedCategory = ref<Category | undefined>(undefined);
 
 const form = useForm<CategoryForm>({
     name: '',
     type: 'expense',
     is_tuition: false,
     is_other: false,
-})
+});
 
 const filteredCategories = computed(() => {
     return props.categories
-        .filter(c => {
-            const matchesSearch = c.name
-                .toLowerCase()
-                .includes(searchQuery.value.toLowerCase())
+        .filter((c) => {
+            const matchesSearch = c.name.toLowerCase().includes(searchQuery.value.toLowerCase());
 
-            const matchesType =
-                typeFilter.value === 'all' ||
-                c.type === typeFilter.value
+            const matchesType = typeFilter.value === 'all' || c.type === typeFilter.value;
 
-            return matchesSearch && matchesType
+            return matchesSearch && matchesType;
         })
-        .sort((a, b) => a.name.localeCompare(b.name))
-})
+        .sort((a, b) => a.name.localeCompare(b.name));
+});
 
 const openModal = (c?: Category) => {
-    selectedCategory.value = c
+    selectedCategory.value = c;
 
     if (c) {
-        editingId.value = c.id
-        form.clearErrors()
-        form.defaults(c)
-        form.reset()
+        editingId.value = c.id;
+        form.clearErrors();
+        form.defaults(c);
+        form.reset();
     } else {
-        editingId.value = null
-        form.clearErrors()
-        form.reset()
+        editingId.value = null;
+        form.clearErrors();
+        form.reset();
     }
 
-    showCategoryModal.value = true
-}
+    showCategoryModal.value = true;
+};
 
 const closeModal = () => {
-    showCategoryModal.value = false
-    editingId.value = null
-    form.reset()
-}
+    showCategoryModal.value = false;
+    editingId.value = null;
+    form.reset();
+};
 
 const handleSubmit = async () => {
-    if (form.processing) return
+    if (form.processing) return;
 
     try {
         if (editingId.value) {
             form.put(route('admin.categories.update', { category: editingId.value }), {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
-            })
+            });
         } else {
             form.post(route('admin.categories.store'), {
                 preserveScroll: true,
                 onSuccess: () => closeModal(),
-            })
+            });
         }
     } catch (error) {
-        console.error('An error occurred:', error)
+        console.error('An error occurred:', error);
     }
-}
+};
 
 const confirmDeleteHandler = (id: number, name: string) => {
-    isShowingDeleteConfirm.value = true
-    getConfirmDeleteData.value = { id, name }
-}
+    isShowingDeleteConfirm.value = true;
+    getConfirmDeleteData.value = { id, name };
+};
 
 const deleteCategory = () => {
     router.delete(route('admin.categories.destroy', { category: getConfirmDeleteData.value.id }), {
+        preserveScroll: true,
+        only: ['categories'],
         onSuccess: () => {
-            isShowingDeleteConfirm.value = false
+            isShowingDeleteConfirm.value = false;
+            getConfirmDeleteData.value = { id: null, name: '' };
         },
-    })
-}
+    });
+};
 </script>
 
 <template>
     <div class="space-y-8">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>
-                <h2 class="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 max-sm:text-2xl">
-                    <Tag class="w-8 h-8" />
+                <h2 class="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">
+                    <Tag class="h-8 w-8" />
                     Categories
                 </h2>
-                <p class="text-slate-500 mt-1">
-                    Manage income and expense categories.
-                </p>
+                <p class="mt-1 text-slate-500">Manage income and expense categories.</p>
             </div>
 
             <button
                 @click="openModal()"
-                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-200 active:scale-95 cursor-pointer"
+                class="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-95"
             >
-                <Plus class="w-5 h-5" />
+                <Plus class="h-5 w-5" />
                 Add Category
             </button>
         </div>
 
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
-            
-            <div class="relative flex-1 w-full">
-                <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+        <div class="flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row">
+            <div class="relative w-full flex-1">
+                <Search class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
                     v-model="searchQuery"
                     type="text"
                     placeholder="Search categories..."
-                    class="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
+                    class="w-full rounded-xl border-none bg-slate-50 py-3 pl-12 pr-4 transition-all focus:ring-2 focus:ring-blue-500"
                 />
             </div>
 
-            <div class="flex items-center gap-2 w-full md:w-auto">
-                <Filter class="w-5 h-5 text-slate-400" />
+            <div class="flex w-full items-center gap-2 md:w-auto">
+                <Filter class="h-5 w-5 text-slate-400" />
                 <select
                     v-model="typeFilter"
-                    class="bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-700 min-w-37.5 cursor-pointer max-sm:w-full"
+                    class="min-w-37.5 cursor-pointer rounded-xl border-none bg-slate-50 px-4 py-3 font-medium text-slate-700 transition-all focus:ring-2 focus:ring-blue-500 max-sm:w-full"
                 >
                     <option value="all">All Types</option>
                     <option value="income">Income</option>
@@ -174,56 +170,51 @@ const deleteCategory = () => {
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div
-                v-if="filteredCategories.length === 0"
-                class="col-span-full py-12 text-center text-slate-400 italic"
-            >
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div v-if="filteredCategories.length === 0" class="col-span-full py-12 text-center italic text-slate-400">
                 No categories found matching your criteria.
             </div>
 
             <div
                 v-for="c in filteredCategories"
                 :key="c.id"
-                class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-200 transition-all group relative overflow-hidden"
+                class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-200"
             >
-                <div class="flex items-start justify-between mb-4">
-
+                <div class="mb-4 flex items-start justify-between">
                     <div
-                        class="p-3 rounded-xl"
+                        class="rounded-xl p-3"
                         :class="{
                             'bg-blue-50 text-blue-600': c.type === 'income',
                             'bg-red-50 text-red-600': c.type === 'expense',
-                            'bg-amber-50 text-amber-600': c.type === 'liability'
+                            'bg-amber-50 text-amber-600': c.type === 'liability',
                         }"
                     >
-                        <Tag class="w-6 h-6" />
+                        <Tag class="h-6 w-6" />
                     </div>
 
                     <!-- ACTIONS -->
-                    <div class="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <div class="flex gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                         <button
                             @click="openModal(c)"
-                            class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                         >
-                            <Pencil class="w-4 h-4" />
+                            <Pencil class="h-4 w-4" />
                         </button>
 
                         <button
                             @click="confirmDeleteHandler(c.id, c.name)"
                             :disabled="(c.transactions_count ?? 0) > 0"
                             :title="(c.transactions_count ?? 0) > 0 ? 'Category is in use and cannot be deleted' : 'Delete category'"
-                            class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            :class="(c.transactions_count ?? 0) > 0 
-                                ? 'cursor-not-allowed opacity-50 pointer-events-none' 
-                                : 'cursor-pointer'"
+                            :class="(
+                                c.transactions_count ?? 0
+                            ) > 0 ? 'rounded-lg p-2 text-slate-400 transition-colors cursor-not-allowed opacity-50' : 'rounded-lg p-2 text-slate-400 transition-colors cursor-pointer hover:bg-red-50 hover:text-red-600'"
                         >
-                            <Trash2 class="w-4 h-4" />
+                            <Trash2 class="h-4 w-4" />
                         </button>
                     </div>
                 </div>
 
-                <h3 class="text-lg font-bold text-slate-900 mb-1">
+                <h3 class="mb-1 text-lg font-bold text-slate-900">
                     {{ c.name }}
                 </h3>
 
@@ -232,14 +223,14 @@ const deleteCategory = () => {
                     :class="{
                         'text-blue-500': c.type === 'income',
                         'text-red-500': c.type === 'expense',
-                        'text-amber-500': c.type === 'liability'
+                        'text-amber-500': c.type === 'liability',
                     }"
                 >
                     {{ c.type }}
                 </p>
 
-                <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                    <Tag class="w-24 h-24 rotate-12" />
+                <div class="absolute -bottom-4 -right-4 opacity-[0.03] transition-opacity group-hover:opacity-[0.08]">
+                    <Tag class="h-24 w-24 rotate-12" />
                 </div>
             </div>
         </div>

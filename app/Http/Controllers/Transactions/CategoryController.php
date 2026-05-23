@@ -27,8 +27,7 @@ class CategoryController extends Controller
     {
         Category::create($request->validated());
 
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully.');
+        return back()->with('success', 'Category created successfully.');
     }
 
     /**
@@ -38,8 +37,7 @@ class CategoryController extends Controller
     {
         $category->update($request->validated());
 
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category updated successfully.');
+        return back()->with('success', 'Category updated successfully.');
     }
 
     /**
@@ -48,14 +46,12 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         if ($category->transactions()->exists()) {
-            return redirect()->route('admin.categories.index')
-                ->with('error', 'Category is in use and cannot be deleted.');
+            return back()->with('error', 'Category is in use and cannot be deleted.');
         }
 
         $category->delete();
 
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category deleted successfully.');
+        return back()->with('success', 'Category deleted successfully.');
     }
 
     /**

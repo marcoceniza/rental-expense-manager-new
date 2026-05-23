@@ -20,13 +20,13 @@ class TransactionController extends Controller
             'transactions' => Transaction::with('category')
                 ->orderByDesc('transaction_date')
                 ->orderByDesc('created_at')
-                ->paginate(10),
+                ->paginate(15),
             'categories' => Category::all(),
             'trashed' => Transaction::onlyTrashed()
                 ->with('category')
                 ->orderByDesc('transaction_date')
                 ->orderByDesc('created_at')
-                ->paginate(10),
+                ->paginate(15),
             'trashedCount' => Transaction::onlyTrashed()->count(),
             'currentDate' => now()->format('Y-m-d'),
         ]);
@@ -56,10 +56,8 @@ class TransactionController extends Controller
     public function store(StoreTransactionRequest $request)
     {
         Transaction::create($request->validated());
-        $redirect = $request->input('redirect', 'admin.transactions.index');
 
-        return redirect()->route($redirect)
-            ->with('success', 'Transaction created successfully.');
+        return back()->with('success', 'Transaction created successfully.');
     }
 
     /**
@@ -68,10 +66,8 @@ class TransactionController extends Controller
     public function update(UpdateTransactionRequest $request, Transaction $transaction)
     {
         $transaction->update($request->validated());
-        $redirect = $request->input('redirect', 'admin.transactions.index');
 
-        return redirect()->route($redirect)
-            ->with('success', 'Transaction updated successfully.');
+        return back()->with('success', 'Transaction updated successfully.');
     }
 
     /**
@@ -80,10 +76,8 @@ class TransactionController extends Controller
     public function destroy(Transaction $transaction)
     {
         $transaction->delete();
-        $redirect = request()->input('redirect', 'admin.transactions.index');
 
-        return redirect()->route($redirect)
-            ->with('success', 'Transaction deleted successfully.');
+        return back()->with('success', 'Transaction deleted successfully.');
     }
 
     /**
@@ -94,8 +88,7 @@ class TransactionController extends Controller
         $transaction = Transaction::withTrashed()->findOrFail($id);
         $transaction->restore();
 
-        return redirect()->route('admin.transactions.index')
-            ->with('success', 'Transaction restored successfully.');
+        return back()->with('success', 'Transaction restored successfully.');
     }
 
     /**
@@ -106,7 +99,6 @@ class TransactionController extends Controller
         $transaction = Transaction::withTrashed()->findOrFail($id);
         $transaction->forceDelete();
 
-        return redirect()->route('admin.transactions.index')
-            ->with('success', 'Transaction permanently deleted.');
+        return back()->with('success', 'Transaction permanently deleted.');
     }
 }

@@ -1,5 +1,5 @@
+import type { PageProps } from '@inertiajs/core';
 import type { LucideIcon } from 'lucide-vue-next';
-import type { PageProps } from '@inertiajs/core'
 
 export interface Auth {
     user: User;
@@ -91,14 +91,14 @@ export interface Recurring {
 }
 
 export type FlashProps = {
-    success?: string
-    error?: string
-    warning?: string
-    info?: string
-}
+    success?: string;
+    error?: string;
+    warning?: string;
+    info?: string;
+};
 declare module '@inertiajs/core' {
     interface PageProps {
-        flash: FlashProps
+        flash: FlashProps;
     }
 }
 

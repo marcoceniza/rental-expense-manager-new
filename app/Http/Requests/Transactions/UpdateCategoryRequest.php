@@ -33,9 +33,9 @@ class UpdateCategoryRequest extends FormRequest
         $category = $this->route('category');
 
         return [
-            'name' => 'sometimes|required|string|max:255',
-            'is_tuition' => 'nullable|boolean',
-            'is_other' => 'nullable|boolean',
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'is_tuition' => ['nullable', 'boolean'],
+            'is_other' => ['nullable', 'boolean'],
             'type' => [
                 'sometimes',
                 'required',

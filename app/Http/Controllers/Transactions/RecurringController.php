@@ -28,8 +28,7 @@ class RecurringController extends Controller
     {
         Recurring::create($request->validated());
 
-        return redirect()->route('admin.recurring.index')
-            ->with('success', 'Recurring created successfully.');
+        return back()->with('success', 'Recurring created successfully.');
     }
 
     /**
@@ -39,8 +38,7 @@ class RecurringController extends Controller
     {
         $recurring->update($request->validated());
 
-        return redirect()->route('admin.recurring.index')
-            ->with('success', 'Recurring updated successfully.');
+        return back()->with('success', 'Recurring updated successfully.');
     }
 
     /**
@@ -50,7 +48,6 @@ class RecurringController extends Controller
     {
         $recurring->delete();
 
-        return redirect()->route('admin.recurring.index')
-            ->with('success', 'Recurring deleted successfully.');
+        return back()->with('success', 'Recurring deleted successfully.');
     }
 }

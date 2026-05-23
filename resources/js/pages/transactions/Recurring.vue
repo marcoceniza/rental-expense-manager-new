@@ -1,38 +1,61 @@
-<script setup>
-import { ref, computed, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
-import { Plus, Trash2, Repeat, Pencil } from 'lucide-vue-next'
-import AppLayout from '@/layouts/AppLayout.vue'
-import RecurringModal from '@/components/RecurringModal.vue'
+<script setup lang="ts">
+import RecurringModal from '@/components/RecurringModal.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { router } from '@inertiajs/vue3';
+import { Pencil, Plus, Repeat, Trash2 } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 defineOptions({
     layout: AppLayout,
-})
+});
 
-const props = defineProps({
-    recurringTransactions: Array,
-    categories: {
-        type: Array,
-        default: () => [],
-    },
-    errors: {
-        type: Object,
-        default: () => ({}),
-    },
-})
+interface TransactionDescription {
+    description: string;
+    amount: number;
+}
 
-const showModal = ref(false)
-const isEditMode = ref(false)
-const editingId = ref(null)
-const loading = ref(false)
+interface Category {
+    id: number;
+    name: string;
+    type: string;
+    description?: string;
+    amount?: number;
+    transaction_descriptions?: TransactionDescription[];
+}
+
+interface RecurringTransaction {
+    id: number;
+    category_id: number;
+    amount: number;
+    frequency: string;
+    start_date: string;
+    description: string;
+}
+
+interface Props {
+    recurringTransactions?: RecurringTransaction[];
+    categories?: Category[];
+    errors?: Record<string, string[]>;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    recurringTransactions: () => [],
+    categories: () => [],
+    errors: () => ({}),
+});
+
+const showModal = ref(false);
+const isEditMode = ref(false);
+const editingId = ref<number | null>(null);
+const loading = ref(false);
 
 const formData = ref({
-    category_id: '',
+    category_id: '' as number | string,
     amount: 0,
     frequency: 'monthly',
     start_date: new Date().toISOString().split('T')[0],
-    description: ''
-})
+    description: '',
+});
 
 const resetForm = () => {
     formData.value = {
@@ -40,179 +63,176 @@ const resetForm = () => {
         amount: 0,
         frequency: 'monthly',
         start_date: new Date().toISOString().split('T')[0],
-        description: ''
-    }
-    isEditMode.value = false
-    editingId.value = null
-}
+        description: '',
+    };
+    isEditMode.value = false;
+    editingId.value = null;
+};
 
 const openModal = () => {
-    resetForm()
-    showModal.value = true
-}
+    resetForm();
+    showModal.value = true;
+};
 
-const editRecurring = (r) => {
-    isEditMode.value = true
-    editingId.value = r.id
+const editRecurring = (r: RecurringTransaction) => {
+    isEditMode.value = true;
+    editingId.value = r.id;
 
     formData.value = {
         category_id: r.category_id,
         amount: r.amount,
         frequency: r.frequency,
         start_date: r.start_date,
-        description: r.description
-    }
+        description: r.description,
+    };
 
-    showModal.value = true
-}
+    showModal.value = true;
+};
 
 const closeModal = () => {
-    showModal.value = false
-    resetForm()
-}
+    showModal.value = false;
+    resetForm();
+};
 
 const handleSubmit = () => {
-    loading.value = true
+    loading.value = true;
 
     const options = {
         preserveScroll: true,
         onSuccess: () => closeModal(),
         onFinish: () => {
-            loading.value = false
+            loading.value = false;
         },
-    }
+    };
 
     if (isEditMode.value) {
-        router.put(route('admin.recurring.update', { recurring: editingId.value }), formData.value, options)
+        router.put(route('admin.recurring.update', { recurring: editingId.value }), formData.value, options);
     } else {
-        router.post(route('admin.recurring.store'), formData.value, options)
+        router.post(route('admin.recurring.store'), formData.value, options);
     }
-}
+};
 
-const deleteRecurring = (id) => {
+const deleteRecurring = (id: number) => {
     if (confirm('Are you sure you want to delete this recurring transaction?')) {
         router.delete(route('admin.recurring.destroy', { recurring: id }), {
             preserveScroll: true,
-        })
+            only: ['recurringTransactions'],
+        });
     }
-}
+};
 
-const safeCategories = computed(() => props.categories || [])
+const safeCategories = computed(() => props.categories || []);
 
 const selectedCategory = computed(() => {
-    return safeCategories.value.find((category) => category.id === formData.value.category_id)
-})
+    return safeCategories.value.find((category) => category.id === formData.value.category_id);
+});
 
 const descriptionOptions = computed(() => {
-    return selectedCategory.value?.transaction_descriptions ?? []
-})
+    return selectedCategory.value?.transaction_descriptions ?? [];
+});
 
 const categoryMap = computed(() => {
-    const map = {}
-    safeCategories.value.forEach(c => {
-        map[c.id] = c.name
-    })
-    return map
-})
+    const map: Record<number, string> = {};
+    safeCategories.value.forEach((c) => {
+        map[c.id] = c.name;
+    });
+    return map;
+});
 
 watch(
     () => formData.value.category_id,
     (categoryId, previousCategoryId) => {
         if (!categoryId || categoryId === previousCategoryId) {
-            return
+            return;
         }
 
-        const selectedCategory = safeCategories.value.find((category) => category.id === categoryId)
+        const selectedCategory = safeCategories.value.find((category) => category.id === categoryId);
 
         if (!selectedCategory) {
-            formData.value.description = ''
-            formData.value.amount = 0
-            return
+            formData.value.description = '';
+            formData.value.amount = 0;
+            return;
         }
 
         if (selectedCategory.transaction_descriptions?.length) {
-            const option = selectedCategory.transaction_descriptions[0]
-            formData.value.description = option.description
-            formData.value.amount = option.amount
-            return
+            const option = selectedCategory.transaction_descriptions[0];
+            formData.value.description = option.description;
+            formData.value.amount = option.amount;
+            return;
         }
 
-        formData.value.description = selectedCategory.description ?? ''
-        formData.value.amount = selectedCategory.amount ?? 0
-    }
-)
+        formData.value.description = selectedCategory.description ?? '';
+        formData.value.amount = selectedCategory.amount ?? 0;
+    },
+);
 
 watch(
     () => formData.value.description,
     (description) => {
         if (!description || !descriptionOptions.value.length) {
-            return
+            return;
         }
 
-        const selectedOption = descriptionOptions.value.find(
-            (option) => option.description === description
-        )
+        const selectedOption = descriptionOptions.value.find((option) => option.description === description);
 
         if (selectedOption) {
-            formData.value.amount = selectedOption.amount
+            formData.value.amount = selectedOption.amount;
         }
-    }
-)
+    },
+);
 
-const formatCurrency = (amount) => {
+const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(amount)
-}
+    }).format(amount);
+};
 </script>
 
 <template>
     <div class="space-y-8">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>
-                <h2 class="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 max-sm:text-2xl">
-                    <Repeat class="w-8 h-8" />
+                <h2 class="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">
+                    <Repeat class="h-8 w-8" />
                     Recurring Transactions
                 </h2>
-                <p class="text-slate-500 mt-1">
-                    Automate your monthly income and expenses.
-                </p>
+                <p class="mt-1 text-slate-500">Automate your monthly income and expenses.</p>
             </div>
 
             <button
                 @click="openModal"
-                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-200 active:scale-95 cursor-pointer"
+                class="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-95"
             >
-                <Plus class="w-5 h-5" />
+                <Plus class="h-5 w-5" />
                 Add Recurring
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div
-                v-for="r in (props.recurringTransactions || [])"
+                v-for="r in props.recurringTransactions || []"
                 :key="r.id"
-                class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-200 transition-all group relative"
+                class="group relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-200"
             >
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <Repeat class="w-6 h-6" />
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="rounded-xl bg-blue-50 p-3 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                        <Repeat class="h-6 w-6" />
                     </div>
 
                     <div class="flex items-center gap-2">
                         <button
                             @click="editRecurring(r)"
-                            class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                         >
-                            <Pencil class="w-5 h-5" />
+                            <Pencil class="h-5 w-5" />
                         </button>
 
                         <button
                             @click="deleteRecurring(r.id)"
-                            class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
                         >
-                            <Trash2 class="w-5 h-5" />
+                            <Trash2 class="h-5 w-5" />
                         </button>
                     </div>
                 </div>
@@ -222,26 +242,22 @@ const formatCurrency = (amount) => {
                         <h3 class="text-lg font-bold text-slate-900">
                             {{ r.description }}
                         </h3>
-                        <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-1">
+                        <p class="mt-1 text-sm font-semibold uppercase tracking-wider text-slate-500">
                             {{ categoryMap[r.category_id] || 'Uncategorized' }}
                         </p>
                     </div>
 
                     <div class="flex items-end justify-between">
                         <div>
-                            <p class="text-xs text-slate-400 uppercase font-bold tracking-widest">
-                                Amount
-                            </p>
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Amount</p>
                             <p class="text-xl font-bold text-slate-900">
                                 {{ formatCurrency(r.amount) }}
                             </p>
                         </div>
 
                         <div class="text-right">
-                            <p class="text-xs text-slate-400 uppercase font-bold tracking-widest">
-                                Frequency
-                            </p>
-                            <p class="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg inline-block">
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Frequency</p>
+                            <p class="inline-block rounded-lg bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-600">
                                 {{ r.frequency }}
                             </p>
                         </div>
@@ -251,22 +267,14 @@ const formatCurrency = (amount) => {
 
             <div
                 v-if="(props.recurringTransactions || []).length === 0"
-                class="col-span-full py-12 text-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl"
+                class="col-span-full rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 py-12 text-center"
             >
                 <div class="flex flex-col items-center gap-3">
-                    <Repeat class="w-12 h-12 text-slate-300" />
-                    <p class="text-slate-400 italic">
-                        No recurring transactions defined yet.
-                    </p>
-                    <button
-                        @click="openModal"
-                        class="text-blue-600 font-bold hover:underline cursor-pointer"
-                    >
-                        Add your first one
-                    </button>
+                    <Repeat class="h-12 w-12 text-slate-300" />
+                    <p class="italic text-slate-400">No recurring transactions defined yet.</p>
+                    <button @click="openModal" class="cursor-pointer font-bold text-blue-600 hover:underline">Add your first one</button>
                 </div>
             </div>
-
         </div>
 
         <RecurringModal

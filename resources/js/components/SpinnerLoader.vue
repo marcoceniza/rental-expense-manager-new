@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -30,12 +30,14 @@ const sizeClass = computed(() => {
 const borderClass = 'border-gray-300';
 
 const colorClass = computed(() => {
-    return {
-        blue: 'border-t-blue-600',
-        red: 'border-t-red-500',
-        green: 'border-t-green-500',
-        gray: 'border-t-gray-600',
-    }[props.color] || 'border-t-blue-600';
+    return (
+        {
+            blue: 'border-t-blue-600',
+            red: 'border-t-red-500',
+            green: 'border-t-green-500',
+            gray: 'border-t-gray-600',
+        }[props.color] || 'border-t-blue-600'
+    );
 });
 
 const wrapperClass = computed(() => {
@@ -45,11 +47,6 @@ const wrapperClass = computed(() => {
 
 <template>
     <div :class="wrapperClass">
-        <div :class="[
-            'rounded-full animate-spin',
-            sizeClass,
-            borderClass,
-            colorClass
-        ]"></div>
+        <div :class="['animate-spin rounded-full', sizeClass, borderClass, colorClass]"></div>
     </div>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { AlertTriangle } from 'lucide-vue-next'
-import BaseButton from '@/components/base/BaseButton.vue'
+import BaseButton from '@/components/base/BaseButton.vue';
+import { AlertTriangle } from 'lucide-vue-next';
 
 const props = defineProps({
     isOpen: { type: Boolean, required: true },
@@ -8,11 +8,11 @@ const props = defineProps({
     message: { type: String, required: true },
     loading: { type: Boolean, default: false },
     actionName: { type: String, default: '' },
-})
+});
 
-const emit = defineEmits(['confirm', 'close'])
+const emit = defineEmits(['confirm', 'close']);
 
-const close = () => emit('close')
+const close = () => emit('close');
 </script>
 
 <template>
@@ -23,9 +23,9 @@ const close = () => emit('close')
         enter-from-class="opacity-0"
         leave-to-class="opacity-0"
     >
-        <div 
-            v-if="isOpen" 
-            class="fixed top-[-32px] inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        <div
+            v-if="isOpen"
+            class="fixed inset-0 top-[-32px] z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
             @click.self="close"
         >
             <!-- Modal with scale animation -->
@@ -35,15 +35,12 @@ const close = () => emit('close')
                 enter-from-class="opacity-0 scale-95"
                 leave-to-class="opacity-0 scale-95"
             >
-                <div 
-                    v-if="isOpen"
-                    class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
-                >
+                <div v-if="isOpen" class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
                     <!-- Gradient Header -->
-                    <div class="bg-gradient-to-br from-red-500 to-rose-600 px-6 pt-6 pb-8">
+                    <div class="bg-gradient-to-br from-red-500 to-rose-600 px-6 pb-8 pt-6">
                         <div class="flex items-center gap-3">
-                            <div class="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
-                                <AlertTriangle class="w-6 h-6 text-white" />
+                            <div class="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
+                                <AlertTriangle class="h-6 w-6 text-white" />
                             </div>
                             <h3 class="text-xl font-bold text-white">
                                 {{ title || 'Confirm Deletion' }}
@@ -52,32 +49,28 @@ const close = () => emit('close')
                     </div>
 
                     <!-- Content -->
-                    <div class="px-6 py-6 space-y-4">
-                        <p class="text-slate-600 text-base leading-relaxed">
-                            Are you sure you want to delete this {{ actionName }}
-                        </p>
-                        
-                        <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                            <p class="text-red-900 font-semibold text-center">
+                    <div class="space-y-4 px-6 py-6">
+                        <p class="text-base leading-relaxed text-slate-600">Are you sure you want to delete this {{ actionName }}</p>
+
+                        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                            <p class="text-center font-semibold text-red-900">
                                 {{ message }}
                             </p>
                         </div>
 
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start gap-3">
-                            <AlertTriangle class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                            <p class="text-sm text-amber-900 font-medium">
-                                This action cannot be undone.
-                            </p>
+                        <div class="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                            <AlertTriangle class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+                            <p class="text-sm font-medium text-amber-900">This action cannot be undone.</p>
                         </div>
                     </div>
 
                     <!-- Actions -->
-                    <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3">
-                        <BaseButton 
-                            variant="secondary" 
-                            size="sm" 
+                    <div class="flex justify-end gap-3 bg-slate-50 px-6 py-4">
+                        <BaseButton
+                            variant="secondary"
+                            size="sm"
                             @click="close"
-                            class="shadow-lg shadow-slate-200 hover:shadow-xl hover:shadow-slate-300 transition-all"
+                            class="shadow-lg shadow-slate-200 transition-all hover:shadow-xl hover:shadow-slate-300"
                         >
                             Cancel
                         </BaseButton>
@@ -88,7 +81,7 @@ const close = () => emit('close')
                             :disabled="loading"
                             size="sm"
                             @click="$emit('confirm')"
-                            class="shadow-lg shadow-red-200 hover:shadow-xl hover:shadow-red-300 transition-all"
+                            class="shadow-lg shadow-red-200 transition-all hover:shadow-xl hover:shadow-red-300"
                         >
                             Yes, Delete
                         </BaseButton>

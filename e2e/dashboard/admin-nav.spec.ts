@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsAdmin, clickSidebarNav } from '../auth/auth.helper.js'
+import { loginAsAdmin, clickSidebarNav } from '../auth/auth.helper.ts'
 
 const adminNavItems = [
     { label: 'Dashboard', url: /\/admin\/dashboard$/ },

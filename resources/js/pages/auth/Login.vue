@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle, Eye, EyeOff } from 'lucide-vue-next';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 defineProps<{
@@ -70,7 +70,7 @@ const submit = () => {
                             v-model="form.password"
                             placeholder="Password"
                         />
-                        <button type="button" class="text-muted-foreground absolute mr-[10px]" @click="showPassword = !showPassword">
+                        <button type="button" class="absolute mr-[10px] text-muted-foreground" @click="showPassword = !showPassword">
                             <Eye v-if="!showPassword" class="h-4 w-4" />
                             <EyeOff v-else class="h-4 w-4" />
                         </button>

@@ -32,10 +32,10 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'is_tuition' => 'nullable|boolean',
-            'is_other' => 'nullable|boolean',
-            'type' => 'required|in:income,expense,liability',
+            'name' => ['required', 'string', 'max:255'],
+            'is_tuition' => ['nullable', 'boolean'],
+            'is_other' => ['nullable', 'boolean'],
+            'type' => ['required', 'in:income,expense,liability'],
         ];
     }
 }

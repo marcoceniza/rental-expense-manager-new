@@ -35,17 +35,26 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000',
+      },
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { 
+        ...devices['Desktop Firefox'],
+        baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000',
+      },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { 
+        ...devices['Desktop Safari'],
+        baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000',
+      },
     },
   ],
 

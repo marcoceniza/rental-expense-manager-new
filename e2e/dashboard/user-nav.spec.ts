@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsUser, clickSidebarNav } from '../auth/auth.helper.js'
+import { loginAsUser, clickSidebarNav } from '../auth/auth.helper.ts'
 
 const userNavItems = [
     { label: 'Dashboard', url: /\/dashboard$/ },

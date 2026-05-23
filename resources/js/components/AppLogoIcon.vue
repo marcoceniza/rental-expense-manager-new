@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
-import logo2 from '../images/logo2.png'
+import logo2 from '../images/logo2.png';
 
 defineOptions({
     inheritAttrs: false,
@@ -14,5 +14,5 @@ defineProps<Props>();
 </script>
 
 <template>
-    <figure class="w-full"><img :src="logo2" alt="Logo"></figure>
+    <figure class="w-full"><img :src="logo2" alt="Logo" /></figure>
 </template>
