@@ -48,7 +48,6 @@ provide('handleLogout', handleLogout);
 
 <template>
     <div class="flex min-h-screen bg-slate-50">
-        <div v-if="!isAuthPage" class="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm md:hidden" />
 
         <Sidebar v-if="!isAuthPage" />
 

@@ -31,7 +31,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
-            .use(VueApexCharts)
+            .component('apexchart', VueApexCharts)
             .mount(el);
     },
     progress: {

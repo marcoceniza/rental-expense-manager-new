@@ -104,12 +104,9 @@ const confirmYearChange = () => {
             route('admin.others'),
             { year: pendingYear.value },
             {
-                preserveState: true,
                 preserveScroll: true,
             },
         );
-
-        currentYear.value = pendingYear.value;
     }
 
     showYearModal.value = false;

@@ -31,7 +31,9 @@ class ReportController extends Controller
     {
         $month = $request->month ?? now()->format('Y-m');
 
-        $monthDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        // Parse month string safely (avoid timezone issues)
+        [$year, $monthNum] = explode('-', $month);
+        $monthDate = \Carbon\Carbon::create($year, $monthNum, 1);
 
         $start = $monthDate->copy()->startOfMonth();
         $end = $monthDate->copy()->endOfMonth();

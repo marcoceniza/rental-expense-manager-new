@@ -48,7 +48,6 @@ const applyChange = (date: Date) => {
         route('admin.dashboard'),
         { month: formatted },
         {
-            preserveState: true,
             preserveScroll: true,
         },
     );

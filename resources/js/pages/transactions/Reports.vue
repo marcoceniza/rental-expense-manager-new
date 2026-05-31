@@ -60,7 +60,8 @@ const props = withDefaults(defineProps<Props>(), {
     categoryReport: () => [],
 });
 
-const currentYear = ref<number | undefined>(props.year);
+const currentYear = ref<number | undefined>(props.year ? Number(props.year) : undefined);
+const selectedYear = ref<number | undefined>(currentYear.value);
 const pendingYear = ref<number | null>(null);
 const showYearModal = ref(false);
 
@@ -78,40 +79,32 @@ const annualStats = computed(() => {
     };
 });
 
-const yearModel = computed({
-    get: () => currentYear.value,
-    set: (newYear: number | undefined) => {
-        if (newYear === currentYear.value) return;
-        pendingYear.value = newYear ?? null;
-        showYearModal.value = true;
-    },
-});
+const handleYearSelect = (event: Event) => {
+    const target = event.target as HTMLSelectElement;
+    const selected = target.value ? Number(target.value) : undefined;
 
-const confirmYearChange = () => {
-    if (pendingYear.value) {
-        const reportPath = isAdmin.value ? '/admin/reports' : '/reports';
-        router.get(
-            reportPath,
-            { year: pendingYear.value },
-            {
-                preserveState: true,
-                preserveScroll: true,
-            },
-        );
-
-        currentYear.value = pendingYear.value;
+    if (selected === currentYear.value) {
+        selectedYear.value = currentYear.value;
+        return;
     }
 
-    showYearModal.value = false;
-    pendingYear.value = null;
+    pendingYear.value = selected ?? null;
+    showYearModal.value = true;
+};
+
+const confirmYearChange = () => {
+    const reportPath = isAdmin.value ? '/admin/reports' : '/reports';
+
+    router.get(reportPath, { year: pendingYear.value });
 };
 
 const cancelYearChange = () => {
+    selectedYear.value = currentYear.value;
     pendingYear.value = null;
     showYearModal.value = false;
 };
 
-const label = computed(() => String(pendingYear.value));
+const label = computed(() => String(pendingYear.value ?? currentYear.value));
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-PH', {
@@ -209,7 +202,8 @@ const annualBarChart = computed(() => {
 
             <div class="flex items-center gap-3 max-sm:justify-end">
                 <select
-                    v-model="yearModel"
+                    v-model="selectedYear"
+                    @change="handleYearSelect"
                     class="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 shadow-sm transition-all focus:ring-2 focus:ring-blue-500"
                 >
                     <option v-for="y in [2024, 2025, 2026, 2027]" :key="y" :value="y">

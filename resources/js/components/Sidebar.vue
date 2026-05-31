@@ -24,15 +24,15 @@ const handleLogout = inject<() => void>('handleLogout');
 </script>
 
 <template>
-    <div v-if="isMenuOpen" class="z-60 fixed inset-0 bg-slate-900/50 backdrop-blur-sm md:hidden" />
+    <div v-if="isMenuOpen" class="z-[9998] fixed inset-0 bg-slate-900/50 backdrop-blur-sm md:hidden" />
 
-    <button class="z-999 right-3.75 top-3.75 absolute" @click="toggleMenu">
+    <button class="fixed right-4 top-4 z-[10001] md:hidden" @click="toggleMenu">
         <X v-show="isMenuOpen" class="h-6 w-6 text-white" />
     </button>
 
     <aside
         v-if="!isAuthPage"
-        class="z-70 fixed left-0 top-0 flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-900 text-white transition-transform duration-300 md:sticky md:translate-x-0"
+        class="z-[9999] fixed left-0 top-0 flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-900 text-white transition-transform duration-300 md:sticky md:translate-x-0"
         :class="isMenuOpen ? 'translate-x-0' : '-translate-x-full'"
     >
         <div class="border-b border-slate-800 p-6">
@@ -48,6 +48,7 @@ const handleLogout = inject<() => void>('handleLogout');
                 :href="item.path"
                 class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
                 :class="{ 'bg-blue-600 text-white': currentUrl === item.path }"
+                @click="toggleMenu"
             >
                 <component :is="item.icon" class="h-5 w-5" />
                 <span>{{ item.name }}</span>

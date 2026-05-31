@@ -116,7 +116,7 @@ const visiblePages = computed(() => {
                 v-html="link.label"
                 @click="goToPage(link.url)"
                 :disabled="!link.url"
-                class="rounded-lg px-3 py-2 text-sm"
+                class="hidden rounded-lg px-3 py-2 text-sm md:inline-flex"
                 :class="[
                     link.label === '...'
                         ? 'cursor-default text-slate-400'

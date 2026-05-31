@@ -130,12 +130,9 @@ const confirmYearChange = () => {
             charityRoute,
             { year: pendingYear.value },
             {
-                preserveState: true,
                 preserveScroll: true,
             },
         );
-
-        currentYear.value = pendingYear.value;
     }
 
     showYearModal.value = false;
@@ -248,25 +245,23 @@ const formatCurrency = (amount: number) => {
                 <p class="mt-1 text-slate-500">Monitor all transactions related to tuition and educational support.</p>
             </div>
 
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-2 shadow-sm max-sm:justify-around">
-                    <button @click="prevYear" class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50">
-                        <ArrowDownRight class="h-5 w-5 rotate-90 text-slate-400" />
-                    </button>
+            <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-2 shadow-sm max-sm:justify-around">
+                <button @click="prevYear" class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50">
+                    <ArrowDownRight class="h-5 w-5 rotate-90 text-slate-400" />
+                </button>
 
-                    <span class="min-w-35 text-center text-sm font-semibold text-slate-700">
-                        {{ currentYear }}
-                    </span>
+                <span class="min-w-35 text-center text-sm font-semibold text-slate-700">
+                    {{ currentYear }}
+                </span>
 
-                    <button
-                        @click="nextYear"
-                        class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50"
-                        :class="{ 'cursor-not-allowed opacity-50': currentYear >= new Date().getFullYear() }"
-                        :disabled="currentYear >= new Date().getFullYear()"
-                    >
-                        <ArrowUpRight class="h-5 w-5 -rotate-90 text-slate-400" />
-                    </button>
-                </div>
+                <button
+                    @click="nextYear"
+                    class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50"
+                    :class="{ 'cursor-not-allowed opacity-50': currentYear >= new Date().getFullYear() }"
+                    :disabled="currentYear >= new Date().getFullYear()"
+                >
+                    <ArrowUpRight class="h-5 w-5 -rotate-90 text-slate-400" />
+                </button>
             </div>
         </div>
 
