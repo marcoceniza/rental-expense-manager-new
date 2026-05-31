@@ -5,7 +5,7 @@ import OthersModal from '@/components/OthersModal.vue';
 import BasePagination from '@/components/base/BasePagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { Category, Transaction } from '@/types';
-import { router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, LayoutGrid, Pencil, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -221,6 +221,7 @@ const deleteTransaction = () => {
 </script>
 
 <template>
+    <Head title="Others" />
     <div class="space-y-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>

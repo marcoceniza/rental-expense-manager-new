@@ -3,7 +3,7 @@ import CategoryModal from '@/components/CategoryModal.vue';
 import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { Category } from '@/types';
-import { router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { Filter, Pencil, Plus, Search, Tag, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
@@ -126,6 +126,7 @@ const deleteCategory = () => {
 </script>
 
 <template>
+    <Head title="Categories" />
     <div class="space-y-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>

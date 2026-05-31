@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, Heart, Pencil, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -234,6 +234,7 @@ const formatCurrency = (amount: number) => {
 </script>
 
 <template>
+    <Head title="Charity" />
     <div class="space-y-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>

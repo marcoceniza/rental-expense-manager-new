@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { addMonths, format, parseISO, subMonths } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, CreditCard, LayoutDashboard, TrendingDown, TrendingUp, Wallet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -132,6 +132,7 @@ const monthlyDonutOptions = {
 </script>
 
 <template>
+    <Head title="Dashboard" />
     <div class="space-y-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>

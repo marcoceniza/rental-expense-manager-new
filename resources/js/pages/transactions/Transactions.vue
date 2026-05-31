@@ -5,7 +5,7 @@ import TransactionModal from '@/components/TransactionModal.vue';
 import TransactionTrashModal from '@/components/TransactionTrashModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { Auth, Category, Transaction } from '@/types';
-import { useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { Filter, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -171,6 +171,7 @@ const formatCurrency = (amount: number) => {
 </script>
 
 <template>
+    <Head title="Transactions" />
     <div class="space-y-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>

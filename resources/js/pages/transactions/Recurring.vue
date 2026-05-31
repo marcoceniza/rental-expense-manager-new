@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import RecurringModal from '@/components/RecurringModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Pencil, Plus, Repeat, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -190,6 +190,7 @@ const formatCurrency = (amount: number) => {
 </script>
 
 <template>
+    <Head title="Recurring Transactions" />
     <div class="space-y-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>

@@ -2,7 +2,7 @@
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { SharedData } from '@/types';
-import { router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -195,6 +195,7 @@ const annualBarChart = computed(() => {
 </script>
 
 <template>
+    <Head title="Reports" />
     <div class="space-y-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>
