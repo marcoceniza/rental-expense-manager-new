@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { BarChart3, Calendar, FileChartPie, FileDown, PieChart } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { route } from 'ziggy-js';
 
 defineOptions({
     layout: AppLayout,
@@ -93,9 +94,13 @@ const handleYearSelect = (event: Event) => {
 };
 
 const confirmYearChange = () => {
-    const reportPath = isAdmin.value ? '/admin/reports' : '/reports';
+    const routeName = isAdmin.value
+        ? 'admin.reports'
+        : 'reports';
 
-    router.get(reportPath, { year: pendingYear.value });
+    router.get(route(routeName), {
+        year: pendingYear.value
+    });
 };
 
 const cancelYearChange = () => {
