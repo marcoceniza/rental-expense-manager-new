@@ -5,7 +5,7 @@ import TransactionModal from '@/components/TransactionModal.vue';
 import TransactionTrashModal from '@/components/TransactionTrashModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { Auth, Category, Transaction } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { Filter, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -38,11 +38,15 @@ const props = defineProps<{
     currentDate: string;
 }>();
 
+const page = usePage();
+const urlParams = new URLSearchParams(page.url.split('?')[1] ?? '');
+
 const searchQuery = ref('');
-const typeFilter = ref('all');
+const typeFilter = ref(urlParams.get('type') ?? 'all');
 const showModal = ref(false);
 const showTrashModal = ref(false);
 const editingId = ref<number | null>(null);
+const monthFilter = ref(urlParams.get('month') ?? 'all');
 
 const form = useForm({
     transaction_date: props.currentDate,
@@ -63,11 +67,28 @@ const confirmDelete = ref<{
     name: '',
 });
 
+const parseTransactionDate = (value: string) => parseISO(value.replace(' ', 'T'));
+
+const applyFilters = () => {
+    const baseUrl = page.url.split('?')[0];
+
+    router.get(baseUrl, {
+        month: monthFilter.value,
+        type: typeFilter.value,
+        page: 1,
+    }, {
+        preserveScroll: true,
+        preserveState: true,
+        replace: true,
+    });
+};
+
 const filteredTransactions = computed(() => {
     return props.transactions.data.filter((t: Transaction) => {
         const search = searchQuery.value.toLowerCase();
 
-        const fields = [t.description, t.category?.name, t.type, t.amount, new Date(t.transaction_date).toLocaleDateString()];
+        const transactionDate = parseTransactionDate(t.transaction_date);
+        const fields = [t.description, t.category?.name, t.type, t.amount, transactionDate.toLocaleDateString()];
 
         const matchesSearch = fields.some((field) =>
             String(field ?? '')
@@ -77,11 +98,15 @@ const filteredTransactions = computed(() => {
 
         const matchesType = typeFilter.value === 'all' || t.type === typeFilter.value;
 
+        const matchesMonth = monthFilter.value === 'all' || transactionDate.getMonth() + 1 === parseInt(monthFilter.value, 10);
+
         const excludeSpecial = t.category?.is_tuition !== true && t.category?.is_other !== true;
 
-        return matchesSearch && matchesType && excludeSpecial;
+        return matchesSearch && matchesType && matchesMonth && excludeSpecial;
     });
 });
+
+console.log('Filtered Transactions:', filteredTransactions.value);
 
 const filteredCategories = computed(() => props.categories.filter((c: Category) => c.type === form.type));
 
@@ -220,12 +245,36 @@ const formatCurrency = (amount: number) => {
                 <Filter class="h-5 w-5 text-slate-400" />
                 <select
                     v-model="typeFilter"
+                    @change="applyFilters"
                     class="min-w-37.5 cursor-pointer rounded-xl border-none bg-slate-50 px-4 py-3 font-medium text-slate-700 transition-all focus:ring-2 focus:ring-blue-500 max-sm:w-full"
                 >
                     <option value="all">All Types</option>
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
                     <option value="liability">Liability</option>
+                </select>
+            </div>
+
+            <div class="flex w-full items-center gap-2 md:w-auto">
+                <Filter class="h-5 w-5 text-slate-400" />
+                <select
+                    v-model="monthFilter"
+                    @change="applyFilters"
+                    class="min-w-37.5 cursor-pointer rounded-xl border-none bg-slate-50 px-4 py-3 font-medium text-slate-700 transition-all focus:ring-2 focus:ring-blue-500 max-sm:w-full"
+                >
+                    <option value="all">Search by Month</option>
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">July</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
                 </select>
             </div>
         </div>
@@ -251,7 +300,7 @@ const formatCurrency = (amount: number) => {
                         <tr v-else v-for="t in filteredTransactions" :key="t.id" class="group transition-colors hover:bg-slate-50">
                             <td class="px-6 py-4 text-sm text-slate-600">
                                 <span class="font-medium text-slate-800">
-                                    {{ format(parseISO(t.transaction_date), 'MMM dd, yyyy') }}
+                                    {{ format(parseTransactionDate(t.transaction_date), 'MMM dd, yyyy') }}
                                 </span>
                             </td>
                             <td class="px-6 py-4">
