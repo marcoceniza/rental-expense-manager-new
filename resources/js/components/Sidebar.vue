@@ -62,7 +62,7 @@ const handleLogout = inject<() => void>('handleLogout');
                 </div>
 
                 <div class="flex-1 overflow-hidden">
-                    <p class="truncate text-sm font-bold">
+                    <p class="truncate text-sm font-bold" data-testid="user-name">
                         {{ user?.name || 'Admin' }}
                     </p>
                     <p class="truncate text-[10px] opacity-60">
