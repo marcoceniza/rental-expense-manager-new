@@ -34,8 +34,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const localFormData = computed(() => props.formData);
-
 const selectedCategory = computed(() => {
     return props.categories.find((category) => category.id === props.formData.category_id);
 });
@@ -65,7 +63,7 @@ const handleSubmit = () => emit('submit');
             class="fixed inset-0 top-[-32px] z-50 flex min-h-screen items-start justify-center overflow-y-auto bg-slate-900/50 px-4 py-10 backdrop-blur-sm sm:items-center sm:p-4"
         >
             <Transition name="scale">
-                <div v-if="isOpen" class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl duration-200 animate-in fade-in zoom-in">
+                <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl duration-200 animate-in fade-in zoom-in">
                     <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-6">
                         <h3 class="text-xl font-bold text-slate-900">
                             {{ editingId ? 'Edit Recurring Entry' : 'New Recurring Entry' }}
@@ -80,7 +78,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Category</label>
                             <select
-                                v-model="localFormData.category_id"
+                                v-model="formData.category_id"
                                 required
                                 :class="[
                                     'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-900 transition-all',
@@ -100,7 +98,7 @@ const handleSubmit = () => emit('submit');
 
                             <template v-if="descriptionOptions.length">
                                 <select
-                                    v-model="localFormData.description"
+                                    v-model="formData.description"
                                     required
                                     :class="[
                                         'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-900 transition-all',
@@ -116,7 +114,7 @@ const handleSubmit = () => emit('submit');
 
                             <template v-else>
                                 <input
-                                    v-model="localFormData.description"
+                                    v-model="formData.description"
                                     type="text"
                                     required
                                     placeholder="e.g., Monthly Rent"
@@ -136,7 +134,7 @@ const handleSubmit = () => emit('submit');
                             <div class="space-y-1.5">
                                 <label class="text-xs font-bold uppercase text-slate-500">Amount (PHP)</label>
                                 <input
-                                    v-model.number="localFormData.amount"
+                                    v-model.number="formData.amount"
                                     type="number"
                                     required
                                     :class="[
@@ -152,7 +150,7 @@ const handleSubmit = () => emit('submit');
                             <div class="space-y-1.5">
                                 <label class="text-xs font-bold uppercase text-slate-500">Frequency</label>
                                 <select
-                                    v-model="localFormData.frequency"
+                                    v-model="formData.frequency"
                                     disabled
                                     class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 font-medium text-slate-900"
                                 >
@@ -164,7 +162,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Start Date</label>
                             <input
-                                v-model="localFormData.start_date"
+                                v-model="formData.start_date"
                                 type="date"
                                 required
                                 :class="[
