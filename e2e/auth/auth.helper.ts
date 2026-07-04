@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test'
 
-const BASE_URL = 'http://127.0.0.1:8000'
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000'
 
 export async function login(page: Page, email: string, password: string) {
     await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle' })
