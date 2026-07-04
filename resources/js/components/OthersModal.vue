@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
+import { computed } from 'vue';
 import BaseButton from './base/BaseButton.vue';
 
 interface Category {
@@ -26,7 +27,9 @@ interface Props {
     loading?: boolean;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const localFormData = computed(() => props.formData);
 
 const emit = defineEmits<{
     'update:isOpen': [value: boolean];
@@ -44,7 +47,7 @@ const handleSubmit = () => emit('submit');
             class="fixed inset-0 top-[-32px] z-50 flex min-h-screen items-start justify-center overflow-y-auto bg-slate-900/50 px-4 py-10 backdrop-blur-sm sm:items-center sm:p-4"
         >
             <Transition name="scale">
-                <div class="max-h-[calc(100vh-4rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
+                <div v-if="isOpen" class="max-h-[calc(100vh-4rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
                     <div class="flex justify-between border-b border-slate-100 bg-slate-50 p-6">
                         <h3 class="text-xl font-bold text-slate-900">
                             {{ editingId ? 'Edit Other Transaction' : 'New Other Transaction' }}
@@ -59,7 +62,7 @@ const handleSubmit = () => emit('submit');
                             <div class="space-y-1.5">
                                 <label class="text-xs font-bold uppercase text-slate-500">Date</label>
                                 <input
-                                    v-model="formData.transaction_date"
+                                    v-model="localFormData.transaction_date"
                                     type="date"
                                     required
                                     class="w-full rounded-xl bg-slate-50 px-4 py-3 focus:ring-2 focus:ring-blue-500"
@@ -68,7 +71,7 @@ const handleSubmit = () => emit('submit');
 
                             <div class="space-y-1.5">
                                 <label class="text-xs font-bold uppercase text-slate-500">Type</label>
-                                <select v-model="formData.type" class="w-full rounded-xl bg-slate-50 px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <select v-model="localFormData.type" class="w-full rounded-xl bg-slate-50 px-4 py-3 focus:ring-2 focus:ring-blue-500">
                                     <option v-for="type in categoryTypes" :key="type" :value="type">
                                         {{ type }}
                                     </option>
@@ -78,7 +81,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Category</label>
                             <select
-                                v-model="formData.category_id"
+                                v-model="localFormData.category_id"
                                 required
                                 class="w-full rounded-xl bg-slate-50 px-4 py-3 focus:ring-2 focus:ring-blue-500"
                             >
@@ -91,7 +94,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Description</label>
                             <input
-                                v-model="formData.description"
+                                v-model="localFormData.description"
                                 type="text"
                                 placeholder="e.g., Rent Payment - Ground Floor"
                                 class="w-full rounded-xl bg-slate-50 px-4 py-3 focus:ring-2 focus:ring-blue-500"
@@ -100,7 +103,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Amount (PHP)</label>
                             <input
-                                v-model.number="formData.amount"
+                                v-model.number="localFormData.amount"
                                 type="number"
                                 step="0.01"
                                 class="w-full rounded-xl bg-slate-50 px-4 py-3 text-lg font-bold"
@@ -109,7 +112,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Remarks</label>
                             <textarea
-                                v-model="formData.remarks"
+                                v-model="localFormData.remarks"
                                 placeholder="Add any additional notes..."
                                 rows="2"
                                 class="w-full resize-none rounded-xl bg-slate-50 px-4 py-3"

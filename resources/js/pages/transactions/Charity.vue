@@ -69,7 +69,6 @@ const showYearModal = ref(false);
 
 const showModal = ref(false);
 const editingId = ref<number | null>(null);
-const deleting = ref(false);
 
 const confirmDelete = ref<{
     show: boolean;

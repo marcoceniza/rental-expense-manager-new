@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LoaderCircle, X } from 'lucide-vue-next';
+import { computed } from 'vue';
 import BaseButton from './base/BaseButton.vue';
 
 interface CategoryType {
@@ -33,7 +34,9 @@ interface Props {
     selectedCategory?: Category | null;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const localFormData = computed(() => props.formData);
 
 const emit = defineEmits<{
     'update:isOpen': [value: boolean];
@@ -51,7 +54,7 @@ const handleSubmit = () => emit('submit');
             class="fixed inset-0 top-[-32px] z-50 flex min-h-screen items-start justify-center overflow-y-auto bg-slate-900/50 px-4 py-10 backdrop-blur-sm sm:items-center sm:p-4"
         >
             <Transition name="scale">
-                <div class="max-h-[calc(100vh-4rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl">
+                <div v-if="isOpen" class="max-h-[calc(100vh-4rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl">
                     <div class="flex justify-between border-b border-slate-100 p-6">
                         <h3 class="text-xl font-bold text-slate-900">
                             {{ editingId ? 'Edit Category' : 'New Category' }}
@@ -65,7 +68,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Category Name</label>
                             <input
-                                v-model="formData.name"
+                                v-model="localFormData.name"
                                 type="text"
                                 placeholder="e.g., Maintenance, Rent, etc."
                                 class="w-full rounded-xl border bg-slate-50 px-4 py-3 text-slate-900"
@@ -83,7 +86,7 @@ const handleSubmit = () => emit('submit');
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold uppercase text-slate-500">Type</label>
                             <select
-                                v-model="formData.type"
+                                v-model="localFormData.type"
                                 class="w-full rounded-xl bg-slate-50 px-4 py-3 text-slate-900"
                                 :class="{ 'pointer-none cursor-not-allowed opacity-50': (selectedCategory?.transactions_count ?? 0) > 0 }"
                                 :disabled="(selectedCategory?.transactions_count ?? 0) > 0"
@@ -96,7 +99,7 @@ const handleSubmit = () => emit('submit');
                         </div>
 
                         <div class="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
-                            <input type="checkbox" v-model="formData.is_tuition" class="h-6 w-6 cursor-pointer" />
+                            <input type="checkbox" v-model="localFormData.is_tuition" class="h-6 w-6 cursor-pointer" />
                             <div>
                                 <p class="text-sm font-bold text-slate-700">Tuition Related</p>
                                 <p class="text-xs text-slate-500">Mark this category for Charity/Tuition tracking.</p>
@@ -104,7 +107,7 @@ const handleSubmit = () => emit('submit');
                         </div>
 
                         <div class="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
-                            <input type="checkbox" v-model="formData.is_other" class="h-6 w-6 cursor-pointer" />
+                            <input type="checkbox" v-model="localFormData.is_other" class="h-6 w-6 cursor-pointer" />
                             <div>
                                 <p class="text-sm font-bold text-slate-700">Other</p>
                                 <p class="text-xs text-slate-500">Mark this category as other.</p>
