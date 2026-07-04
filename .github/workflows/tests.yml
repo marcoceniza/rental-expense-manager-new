@@ -45,10 +45,10 @@ jobs:
 
       - name: Configure test environment
         run: |
-          php artisan config:clear
-          php artisan cache:clear
           php artisan key:generate
           php artisan migrate:fresh --seed
+          php artisan config:clear
+          php artisan cache:clear
 
       - name: Publish Ziggy Configuration
         run: php artisan ziggy:generate
