@@ -12,6 +12,7 @@ class Transaction extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'user_id',
         'category_id',
         'type',
         'amount',
@@ -36,6 +37,11 @@ class Transaction extends Model
     public function category()
     {
         return $this->belongsTo(Category::class)->withTrashed();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

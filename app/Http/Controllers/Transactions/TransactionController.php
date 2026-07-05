@@ -22,7 +22,7 @@ class TransactionController extends Controller
         $month = $request->query('month');
         $type = $request->query('type');
 
-        $query = Transaction::with('category')
+        $query = Transaction::with(['category', 'user'])
             ->orderByDesc('transaction_date')
             ->orderByDesc('created_at');
 
@@ -107,7 +107,10 @@ class TransactionController extends Controller
      */
     public function store(StoreTransactionRequest $request)
     {
-        Transaction::create($request->validated());
+        Transaction::create([
+            ...$request->validated(),
+            'user_id' => auth()->id(),
+        ]);
 
         return back()->with('success', 'Transaction created successfully.');
     }

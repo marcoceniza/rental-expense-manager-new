@@ -4,7 +4,7 @@ import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import TransactionModal from '@/components/TransactionModal.vue';
 import TransactionTrashModal from '@/components/TransactionTrashModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Auth, Category, Transaction } from '@/types';
+import type { Auth, Category, Transaction, PaginatedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { Filter, LoaderCircle, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
@@ -13,21 +13,6 @@ import { computed, ref } from 'vue';
 defineOptions({
     layout: AppLayout,
 });
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-}
 
 const props = defineProps<{
     transactions: PaginatedData<Transaction>;
@@ -300,6 +285,7 @@ const formatCurrency = (amount: number) => {
                             <th class="px-6 py-4">Description</th>
                             <th class="px-6 py-4">Category</th>
                             <th class="px-6 py-4">Amount</th>
+                            <th class="px-6 py-4">Added By</th>
                             <th v-if="auth.user?.user_type === 'admin'" class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -344,6 +330,9 @@ const formatCurrency = (amount: number) => {
                                 <span class="text-sm font-bold" :class="t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'">
                                     {{ t.type === 'income' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600 text-center">
+                                {{ t.user?.name || '-' }}
                             </td>
                             <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2 transition-opacity md:opacity-0 md:group-hover:opacity-100">
