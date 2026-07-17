@@ -257,19 +257,19 @@ const formatCurrency = (amount: number) => {
                         :disabled="isMonthFiltering"
                         class="min-w-37.5 cursor-pointer rounded-xl border-none bg-slate-50 px-4 py-3 font-medium text-slate-700 transition-all focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-70 max-sm:w-full"
                     >
-                    <option value="all">Search by Month</option>
-                    <option value="01">January</option>
-                    <option value="02">February</option>
-                    <option value="03">March</option>
-                    <option value="04">April</option>
-                    <option value="05">May</option>
-                    <option value="06">June</option>
-                    <option value="07">July</option>
-                    <option value="08">August</option>
-                    <option value="09">September</option>
-                    <option value="10">October</option>
-                    <option value="11">November</option>
-                    <option value="12">December</option>
+                        <option value="all">Search by Month</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
                     </select>
                     <LoaderCircle v-if="isMonthFiltering" class="h-4 w-4 animate-spin text-blue-600" />
                 </div>
@@ -292,7 +292,7 @@ const formatCurrency = (amount: number) => {
 
                     <tbody class="divide-y divide-slate-100">
                         <tr v-if="isMonthFiltering">
-                            <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                                 <div class="flex items-center justify-center gap-2">
                                     <LoaderCircle class="h-4 w-4 animate-spin text-blue-600" />
                                     <span>Loading transactions...</span>
@@ -301,7 +301,7 @@ const formatCurrency = (amount: number) => {
                         </tr>
 
                         <tr v-else-if="filteredTransactions.length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center italic text-slate-400">No transactions found.</td>
+                            <td colspan="6" class="px-6 py-12 text-center italic text-slate-400">No transactions found.</td>
                         </tr>
 
                         <tr v-else v-for="t in filteredTransactions" :key="t.id" class="group transition-colors hover:bg-slate-50">

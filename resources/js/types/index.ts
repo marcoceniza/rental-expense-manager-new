@@ -19,16 +19,12 @@ export interface NavItem {
 
 export interface SharedData extends PageProps {
     name: string;
-
     quote: {
         message: string;
         author: string;
     };
-
     auth: Auth;
-
     flash: FlashProps;
-
     ziggy: {
         location: string;
         url: string;
@@ -105,6 +101,32 @@ export interface PaginatedData<T> {
         label: string;
         active: boolean;
     }>;
+}
+
+export interface Category {
+    id: number;
+    name: string;
+    type: string;
+}
+
+export interface CharityStats {
+    expense: number;
+    transactions: PaginatedData<Transaction>;
+}
+
+export interface CharityTransaction {
+    id: number;
+    description: string;
+    remarks?: string;
+    amount: number;
+    type: string;
+    transaction_date: string;
+    category_id: number;
+}
+
+export interface OtherStats {
+    income: number;
+    transactions: PaginatedData<Transaction>;
 }
 
 export type FlashProps = {

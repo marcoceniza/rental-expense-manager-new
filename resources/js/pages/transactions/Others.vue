@@ -4,7 +4,7 @@ import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import OthersModal from '@/components/OthersModal.vue';
 import BasePagination from '@/components/base/BasePagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Category, Transaction } from '@/types';
+import type { Category, OtherStats, PaginatedData } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, LayoutGrid, Pencil, Trash2 } from 'lucide-vue-next';
@@ -13,26 +13,6 @@ import { computed, ref } from 'vue';
 defineOptions({
     layout: AppLayout,
 });
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-}
-
-interface OtherStats {
-    income: number;
-    transactions: PaginatedData<Transaction>;
-}
 
 const props = defineProps<{
     otherStats: OtherStats;
@@ -272,13 +252,14 @@ const deleteTransaction = () => {
                             <th class="px-6 py-4">Description</th>
                             <th class="px-6 py-4">Category</th>
                             <th class="px-6 py-4">Amount</th>
+                            <th class="px-6 py-4">Added By</th>
                             <th class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
                         <tr v-if="!props.otherStats?.transactions?.data?.length">
-                            <td colspan="5" class="px-6 py-12 text-center italic text-slate-400">No transaction others found.</td>
+                            <td colspan="6" class="px-6 py-12 text-center italic text-slate-400">No transaction others found.</td>
                         </tr>
                         <tr v-for="t in props.otherStats?.transactions?.data ?? []" :key="t.id" class="group transition-colors hover:bg-slate-50">
                             <td class="px-6 py-4 text-sm text-slate-600">
@@ -305,6 +286,10 @@ const deleteTransaction = () => {
                                     {{ t.type === 'income' ? '+' : '-' }}
                                     {{ formatCurrency(t.amount) }}
                                 </span>
+                            </td>
+
+                            <td class="px-6 py-4 text-sm text-slate-600 text-center">
+                                {{ t.user?.name || '-' }}
                             </td>
 
                             <td class="px-6 py-4">
