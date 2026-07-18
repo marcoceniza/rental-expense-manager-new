@@ -4,30 +4,15 @@ import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import TransactionModal from '@/components/TransactionModal.vue';
 import TransactionTrashModal from '@/components/TransactionTrashModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Auth, Category, Transaction } from '@/types';
+import type { Auth, Category, Transaction, PaginatedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
-import { Filter, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
+import { Filter, LoaderCircle, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 defineOptions({
     layout: AppLayout,
 });
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-}
 
 const props = defineProps<{
     transactions: PaginatedData<Transaction>;
@@ -47,6 +32,7 @@ const showModal = ref(false);
 const showTrashModal = ref(false);
 const editingId = ref<number | null>(null);
 const monthFilter = ref(urlParams.get('month') ?? 'all');
+const isMonthFiltering = ref(false);
 
 const form = useForm({
     transaction_date: props.currentDate,
@@ -69,8 +55,12 @@ const confirmDelete = ref<{
 
 const parseTransactionDate = (value: string) => parseISO(value.replace(' ', 'T'));
 
-const applyFilters = () => {
+const applyFilters = (source: 'month' | 'type' = 'month') => {
     const baseUrl = page.url.split('?')[0];
+
+    if (source === 'month') {
+        isMonthFiltering.value = true;
+    }
 
     router.get(baseUrl, {
         month: monthFilter.value,
@@ -80,6 +70,11 @@ const applyFilters = () => {
         preserveScroll: true,
         preserveState: true,
         replace: true,
+        onFinish: () => {
+            if (source === 'month') {
+                isMonthFiltering.value = false;
+            }
+        },
     });
 };
 
@@ -105,8 +100,6 @@ const filteredTransactions = computed(() => {
         return matchesSearch && matchesType && matchesMonth && excludeSpecial;
     });
 });
-
-console.log('Filtered Transactions:', filteredTransactions.value);
 
 const filteredCategories = computed(() => props.categories.filter((c: Category) => c.type === form.type));
 
@@ -245,7 +238,7 @@ const formatCurrency = (amount: number) => {
                 <Filter class="h-5 w-5 text-slate-400" />
                 <select
                     v-model="typeFilter"
-                    @change="applyFilters"
+                    @change="applyFilters('type')"
                     class="min-w-37.5 cursor-pointer rounded-xl border-none bg-slate-50 px-4 py-3 font-medium text-slate-700 transition-all focus:ring-2 focus:ring-blue-500 max-sm:w-full"
                 >
                     <option value="all">All Types</option>
@@ -257,25 +250,29 @@ const formatCurrency = (amount: number) => {
 
             <div class="flex w-full items-center gap-2 md:w-auto">
                 <Filter class="h-5 w-5 text-slate-400" />
-                <select
-                    v-model="monthFilter"
-                    @change="applyFilters"
-                    class="min-w-37.5 cursor-pointer rounded-xl border-none bg-slate-50 px-4 py-3 font-medium text-slate-700 transition-all focus:ring-2 focus:ring-blue-500 max-sm:w-full"
-                >
-                    <option value="all">Search by Month</option>
-                    <option value="01">January</option>
-                    <option value="02">February</option>
-                    <option value="03">March</option>
-                    <option value="04">April</option>
-                    <option value="05">May</option>
-                    <option value="06">June</option>
-                    <option value="07">July</option>
-                    <option value="08">August</option>
-                    <option value="09">September</option>
-                    <option value="10">October</option>
-                    <option value="11">November</option>
-                    <option value="12">December</option>
-                </select>
+                <div class="flex items-center gap-2">
+                    <select
+                        v-model="monthFilter"
+                        @change="applyFilters('month')"
+                        :disabled="isMonthFiltering"
+                        class="min-w-37.5 cursor-pointer rounded-xl border-none bg-slate-50 px-4 py-3 font-medium text-slate-700 transition-all focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-70 max-sm:w-full"
+                    >
+                        <option value="all">Search by Month</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <LoaderCircle v-if="isMonthFiltering" class="h-4 w-4 animate-spin text-blue-600" />
+                </div>
             </div>
         </div>
 
@@ -288,13 +285,23 @@ const formatCurrency = (amount: number) => {
                             <th class="px-6 py-4">Description</th>
                             <th class="px-6 py-4">Category</th>
                             <th class="px-6 py-4">Amount</th>
+                            <th class="px-6 py-4">Added By</th>
                             <th v-if="auth.user?.user_type === 'admin'" class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
-                        <tr v-if="filteredTransactions.length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center italic text-slate-400">No transactions found.</td>
+                        <tr v-if="isMonthFiltering">
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                                <div class="flex items-center justify-center gap-2">
+                                    <LoaderCircle class="h-4 w-4 animate-spin text-blue-600" />
+                                    <span>Loading transactions...</span>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr v-else-if="filteredTransactions.length === 0">
+                            <td colspan="6" class="px-6 py-12 text-center italic text-slate-400">No transactions found.</td>
                         </tr>
 
                         <tr v-else v-for="t in filteredTransactions" :key="t.id" class="group transition-colors hover:bg-slate-50">
@@ -323,6 +330,9 @@ const formatCurrency = (amount: number) => {
                                 <span class="text-sm font-bold" :class="t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'">
                                     {{ t.type === 'income' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600 text-center">
+                                {{ t.user?.name || '-' }}
                             </td>
                             <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2 transition-opacity md:opacity-0 md:group-hover:opacity-100">

@@ -3,53 +3,16 @@ import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, Heart, Pencil, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-
 import CharityModal from '@/components/CharityModal.vue';
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import BasePagination from '@/components/base/BasePagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { SharedData } from '@/types';
+import type { SharedData, Category, CharityStats, CharityTransaction } from '@/types';
 
 defineOptions({
     layout: AppLayout,
 });
-
-interface Category {
-    id: number;
-    name: string;
-    type: string;
-}
-
-interface Transaction {
-    id: number;
-    description: string;
-    remarks?: string;
-    amount: number;
-    type: 'income' | 'expense' | 'liability';
-    transaction_date: string;
-    category_id: number;
-}
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-}
-
-interface CharityStats {
-    expense: number;
-    transactions: PaginatedData<Transaction>;
-}
 
 const props = defineProps<{
     charityStats: CharityStats;
@@ -146,7 +109,7 @@ const cancelYearChange = () => {
 
 const label = computed(() => (pendingYear.value ? String(pendingYear.value) : String(currentYear.value)));
 
-const openModal = (t: Transaction | null = null) => {
+const openModal = (t: CharityTransaction | null = null) => {
     if (t) {
         editingId.value = t.id;
 
@@ -284,7 +247,7 @@ const formatCurrency = (amount: number) => {
                             <th class="px-6 py-4">Description</th>
                             <th class="px-6 py-4">Category</th>
                             <th class="px-6 py-4">Amount</th>
-
+                            <th class="px-6 py-4">Added By</th>
                             <th v-if="isAdmin" class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -322,6 +285,10 @@ const formatCurrency = (amount: number) => {
                                     {{ t.type === 'income' ? '+' : '-' }}
                                     {{ formatCurrency(t.amount) }}
                                 </span>
+                            </td>
+
+                            <td class="px-6 py-4 text-sm text-slate-600 text-center">
+                                {{ t.user?.name || '-' }}
                             </td>
 
                             <td v-if="isAdmin" class="px-6 py-4">

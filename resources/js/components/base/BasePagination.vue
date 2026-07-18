@@ -32,7 +32,9 @@ const goToPage = (url: string | null) => {
 };
 
 const visiblePages = computed(() => {
-    const allPages = props.pagination.links.filter((link) => link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;');
+    const allPages = (props.pagination.links ?? []).filter(
+        (link): link is PaginationLink => Boolean(link) && link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;',
+    );
 
     const currentPage = props.pagination.current_page;
     const lastPage = props.pagination.last_page;
@@ -48,8 +50,12 @@ const visiblePages = computed(() => {
     // Helper function to add page without duplicates
     const addPage = (pageNum: number) => {
         if (pageNum >= 1 && pageNum <= lastPage && !addedPages.has(pageNum)) {
-            pages.push(allPages[pageNum - 1]);
-            addedPages.add(pageNum);
+            const pageLink = allPages[pageNum - 1];
+
+            if (pageLink) {
+                pages.push(pageLink);
+                addedPages.add(pageNum);
+            }
         }
     };
 

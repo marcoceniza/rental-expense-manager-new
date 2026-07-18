@@ -78,10 +78,11 @@ export default defineConfig({
   //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
   // },
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Run the Laravel app before starting the tests */
+  webServer: {
+    command: 'php artisan serve --host=127.0.0.1 --port=8000',
+    url: 'http://127.0.0.1:8000/login',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
 });

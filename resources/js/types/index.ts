@@ -19,16 +19,12 @@ export interface NavItem {
 
 export interface SharedData extends PageProps {
     name: string;
-
     quote: {
         message: string;
         author: string;
     };
-
     auth: Auth;
-
     flash: FlashProps;
-
     ziggy: {
         location: string;
         url: string;
@@ -62,6 +58,7 @@ export interface Category {
 
 export interface Transaction {
     id: number;
+    user_id: number;
     category_id: number;
     type: string;
     amount: number;
@@ -71,6 +68,7 @@ export interface Transaction {
     recurring_id?: number;
     is_recurring_generated: boolean;
     category?: Category;
+    user?: User;
     created_at: string;
     updated_at: string;
     deleted_at?: string;
@@ -88,6 +86,47 @@ export interface Recurring {
     category?: Category;
     created_at: string;
     updated_at: string;
+}
+
+export interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+}
+
+export interface Category {
+    id: number;
+    name: string;
+    type: string;
+}
+
+export interface CharityStats {
+    expense: number;
+    transactions: PaginatedData<Transaction>;
+}
+
+export interface CharityTransaction {
+    id: number;
+    description: string;
+    remarks?: string;
+    amount: number;
+    type: string;
+    transaction_date: string;
+    category_id: number;
+}
+
+export interface OtherStats {
+    income: number;
+    transactions: PaginatedData<Transaction>;
 }
 
 export type FlashProps = {
