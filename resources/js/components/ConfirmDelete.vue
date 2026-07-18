@@ -2,7 +2,7 @@
 import BaseButton from '@/components/base/BaseButton.vue';
 import { AlertTriangle } from 'lucide-vue-next';
 
-const props = defineProps({
+defineProps({
     isOpen: { type: Boolean, required: true },
     title: { type: String, default: '' },
     message: { type: String, required: true },

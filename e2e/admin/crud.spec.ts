@@ -81,7 +81,6 @@ test.describe('Admin CRUD actions', () => {
 
     test('admin can create, update and delete recurring entries', async ({ page }) => {
         const categoryName = `Recurring Category ${uniqueSuffix()}`
-        const recurringDescription = `Recurring ${uniqueSuffix()}`
 
         await loginAsAdmin(page)
         

@@ -1,0 +1,58 @@
+# .github/labeler.yml
+# Automatically applied labels based on files changed in a PR.
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'app/**'
+          - 'bootstrap/**'
+          - 'config/**'
+          - 'database/**'
+          - 'routes/**'
+          - 'composer.json'
+          - 'composer.lock'
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'resources/js/**'
+          - 'resources/css/**'
+          - 'package.json'
+          - 'package-lock.json'
+          - 'vite.config.ts'
+          - 'tailwind.config.js'
+          - 'tsconfig.json'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
+          - 'e2e/**'
+          - 'phpunit.xml'
+          - 'playwright.config.ts'
+
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'database/migrations/**'
+          - 'database/seeders/**'
+          - 'database/factories/**'
+
+ci/cd:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.md'
+          - 'docs/**'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'composer.json'
+          - 'composer.lock'
+          - 'package.json'
+          - 'package-lock.json'

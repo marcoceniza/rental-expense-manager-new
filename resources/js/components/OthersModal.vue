@@ -44,7 +44,7 @@ const handleSubmit = () => emit('submit');
             class="fixed inset-0 top-[-32px] z-50 flex min-h-screen items-start justify-center overflow-y-auto bg-slate-900/50 px-4 py-10 backdrop-blur-sm sm:items-center sm:p-4"
         >
             <Transition name="scale">
-                <div class="max-h-[calc(100vh-4rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
+                <div v-if="isOpen" class="max-h-[calc(100vh-4rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
                     <div class="flex justify-between border-b border-slate-100 bg-slate-50 p-6">
                         <h3 class="text-xl font-bold text-slate-900">
                             {{ editingId ? 'Edit Other Transaction' : 'New Other Transaction' }}
