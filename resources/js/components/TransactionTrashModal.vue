@@ -4,7 +4,7 @@ import { AlertCircle, RotateCcw, Trash2, X } from 'lucide-vue-next';
 
 import type { Transaction } from '@/types';
 
-const props = defineProps<{
+defineProps<{
     show: boolean;
     trashed: {
         data: Transaction[];

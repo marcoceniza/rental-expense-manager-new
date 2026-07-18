@@ -2,12 +2,12 @@
 import { CalendarClock } from 'lucide-vue-next';
 import BaseButton from './base/BaseButton.vue';
 
-const props = defineProps({
+defineProps({
     show: Boolean,
     label: String,
 });
 
-const emit = defineEmits(['confirm', 'cancel']);
+defineEmits(['confirm', 'cancel']);
 </script>
 
 <template>

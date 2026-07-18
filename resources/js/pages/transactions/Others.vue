@@ -4,7 +4,7 @@ import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import OthersModal from '@/components/OthersModal.vue';
 import BasePagination from '@/components/base/BasePagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Category, OtherStats, PaginatedData } from '@/types';
+import type { Category, OtherStats } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, LayoutGrid, Pencil, Trash2 } from 'lucide-vue-next';
