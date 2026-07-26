@@ -17,7 +17,7 @@ defineOptions({
 const props = defineProps<{
     transactions: PaginatedData<Transaction>;
     categories: Category[];
-    trashed: PaginatedData<Transaction>;
+    trashed: PaginatedData<Transaction> | Transaction[];
     trashedCount: number;
     auth: Auth;
     currentDate: string;

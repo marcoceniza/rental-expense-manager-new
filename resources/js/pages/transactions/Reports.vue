@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { SharedData } from '@/types';
+import type { AnnualReport, CategorySummary, SharedData, User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
@@ -9,42 +9,11 @@ import autoTable from 'jspdf-autotable';
 import { BarChart3, Calendar, FileChartPie, FileDown, PieChart } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { route } from 'ziggy-js';
+import logoUrl from '@/images/logo.png';
 
 defineOptions({
     layout: AppLayout,
 });
-
-interface User {
-    name: string;
-    email: string;
-    user_type: string;
-}
-
-interface MonthlyData {
-    month: string;
-    income: number;
-    expense: number;
-    liability: number;
-    net: number;
-}
-
-interface AnnualReport {
-    monthly: MonthlyData[];
-    totals: {
-        income: number;
-        expense: number;
-        liability: number;
-        net: number;
-    };
-}
-
-interface CategorySummary {
-    categoryReport: Array<{
-        name: string;
-        type: string;
-        total: number;
-    }>;
-}
 
 interface Props {
     year?: number;
@@ -125,19 +94,31 @@ const pdfCurrency = (value: number) => {
     })}`;
 };
 
-const exportPDF = () => {
+const exportPDF = async () => {
     const doc = new jsPDF();
     const year = currentYear.value;
 
+    const img = new Image();
+    img.src = logoUrl;
+    await new Promise<void>((resolve) => {
+        img.onload = () => resolve();
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoHeight = 20;
+    const logoWidth = (img.naturalWidth / img.naturalHeight) * logoHeight;
+    const logoX = (pageWidth - logoWidth) / 2;
+    doc.addImage(img, 'PNG', logoX, 8, logoWidth, logoHeight);
+
     doc.setFontSize(22);
-    doc.text('Annual Financial Report', 14, 20);
+    doc.text('Annual Financial Report', pageWidth / 2, 36, { align: 'center' });
 
     doc.setFontSize(12);
-    doc.text(`Year: ${year}`, 14, 28);
-    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, 14, 34);
+    doc.text(`Year: ${year}`, pageWidth / 2, 44, { align: 'center' });
+    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, pageWidth / 2, 50, { align: 'center' });
 
     doc.setFontSize(16);
-    doc.text('Monthly Summary', 14, 48);
+    doc.text('Monthly Summary', 14, 62);
 
     const summaryData = annualStats.value.monthly.map((m) => [
         m.month,
@@ -148,7 +129,7 @@ const exportPDF = () => {
     ]);
 
     autoTable(doc, {
-        startY: 54,
+        startY: 68,
         head: [['Month', 'Income', 'Expense', 'Liability', 'Net']],
         body: summaryData,
         foot: [

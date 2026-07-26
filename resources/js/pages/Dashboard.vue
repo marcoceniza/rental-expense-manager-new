@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import type { Category, Transaction } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { addMonths, format, parseISO, subMonths } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, CreditCard, LayoutDashboard, TrendingDown, TrendingUp, Wallet } from 'lucide-vue-next';
@@ -10,20 +11,6 @@ import { route } from 'ziggy-js';
 defineOptions({
     layout: AppLayout,
 });
-
-interface Category {
-    id: number;
-    name: string;
-}
-
-interface Transaction {
-    id: number;
-    amount: number;
-    type: string;
-    transaction_date: string;
-    category_id: number;
-    description: string;
-}
 
 const props = defineProps<{
     transactions: Transaction[];

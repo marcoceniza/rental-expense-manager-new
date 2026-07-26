@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Category } from '@/types';
 import { LoaderCircle, X } from 'lucide-vue-next';
 import BaseButton from './base/BaseButton.vue';
 
@@ -12,15 +13,6 @@ interface FormData {
     type: string;
     is_tuition: boolean;
     is_other: boolean;
-}
-
-interface Category {
-    id: number;
-    name: string;
-    type: string;
-    is_tuition: boolean;
-    is_other: boolean;
-    transactions_count?: number;
 }
 
 interface Props {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import RecurringModal from '@/components/RecurringModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import type { Recurring, RecurringCategoryOption } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { Pencil, Plus, Repeat, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -9,32 +10,9 @@ defineOptions({
     layout: AppLayout,
 });
 
-interface TransactionDescription {
-    description: string;
-    amount: number;
-}
-
-interface Category {
-    id: number;
-    name: string;
-    type: string;
-    description?: string;
-    amount?: number;
-    transaction_descriptions?: TransactionDescription[];
-}
-
-interface RecurringTransaction {
-    id: number;
-    category_id: number;
-    amount: number;
-    frequency: string;
-    start_date: string;
-    description: string;
-}
-
 interface Props {
-    recurringTransactions?: RecurringTransaction[];
-    categories?: Category[];
+    recurringTransactions?: Recurring[];
+    categories?: RecurringCategoryOption[];
     errors?: Record<string, string[]>;
 }
 
