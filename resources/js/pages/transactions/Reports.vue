@@ -13,6 +13,7 @@ import logoUrl from '@/images/logo.png';
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
 interface Props {
@@ -105,20 +106,20 @@ const exportPDF = async () => {
     });
 
     const pageWidth = doc.internal.pageSize.getWidth();
-    const logoHeight = 20;
+    const logoHeight = 10;
     const logoWidth = (img.naturalWidth / img.naturalHeight) * logoHeight;
     const logoX = (pageWidth - logoWidth) / 2;
     doc.addImage(img, 'PNG', logoX, 8, logoWidth, logoHeight);
 
     doc.setFontSize(22);
-    doc.text('Annual Financial Report', pageWidth / 2, 36, { align: 'center' });
+    doc.text('Annual Financial Report', pageWidth / 2, 26, { align: 'center' });
 
     doc.setFontSize(12);
-    doc.text(`Year: ${year}`, pageWidth / 2, 44, { align: 'center' });
-    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, pageWidth / 2, 50, { align: 'center' });
+    doc.text(`Year: ${year}`, pageWidth / 2, 34, { align: 'center' });
+    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, pageWidth / 2, 40, { align: 'center' });
 
     doc.setFontSize(16);
-    doc.text('Monthly Summary', 14, 62);
+    doc.text('Monthly Summary', 14, 52);
 
     const summaryData = annualStats.value.monthly.map((m) => [
         m.month,
@@ -129,7 +130,7 @@ const exportPDF = async () => {
     ]);
 
     autoTable(doc, {
-        startY: 68,
+        startY: 58,
         head: [['Month', 'Income', 'Expense', 'Liability', 'Net']],
         body: summaryData,
         foot: [

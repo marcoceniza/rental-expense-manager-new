@@ -12,6 +12,7 @@ import type { SharedData, Category, CharityStats, CharityTransaction } from '@/t
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
 const props = defineProps<{

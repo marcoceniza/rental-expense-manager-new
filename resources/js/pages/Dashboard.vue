@@ -10,6 +10,7 @@ import { route } from 'ziggy-js';
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
 const props = defineProps<{

@@ -12,6 +12,7 @@ import { computed, ref } from 'vue';
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
 const props = defineProps<{

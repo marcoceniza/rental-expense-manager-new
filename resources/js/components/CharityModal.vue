@@ -18,7 +18,7 @@ defineProps<{
     form: FormData;
     categoryTypes: string[];
     filteredCategories: Category[];
-    loading: boolean;
+    loading?: boolean;
 }>();
 
 const emit = defineEmits(['update:isOpen', 'submit']);

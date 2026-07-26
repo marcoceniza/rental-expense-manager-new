@@ -8,6 +8,7 @@ import { computed, ref, watch } from 'vue';
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
 interface Props {
