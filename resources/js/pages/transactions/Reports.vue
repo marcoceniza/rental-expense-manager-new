@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { AnnualReport, CategorySummary, SharedData, User } from '@/types';
+import type { AnnualReport, CategorySummary, SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { BarChart3, Calendar, FileChartPie, FileDown, PieChart } from 'lucide-vue-next';
+import { BarChart3, Calendar, FileChartPie, FileDown, PieChart, Printer } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { route } from 'ziggy-js';
 import logoUrl from '@/images/logo.png';
@@ -20,7 +20,6 @@ interface Props {
     year?: number;
     annualReport?: AnnualReport;
     categoryReport?: unknown[];
-    user?: User;
     categorySummary?: CategorySummary;
 }
 
@@ -35,6 +34,7 @@ const currentYear = ref<number | undefined>(props.year ? Number(props.year) : un
 const selectedYear = ref<number | undefined>(currentYear.value);
 const pendingYear = ref<number | null>(null);
 const showYearModal = ref(false);
+const yearLoading = ref(false);
 
 const annualStats = computed(() => {
     const data = props.annualReport || { monthly: [], totals: { income: 0, expense: 0, liability: 0, net: 0 } };
@@ -64,6 +64,8 @@ const handleYearSelect = (event: Event) => {
 };
 
 const confirmYearChange = () => {
+    yearLoading.value = true;
+
     const routeName = isAdmin.value
         ? 'admin.reports'
         : 'reports';
@@ -82,10 +84,12 @@ const cancelYearChange = () => {
 const label = computed(() => String(pendingYear.value ?? currentYear.value));
 
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PH', {
+    const value = Number(amount) || 0;
+    const formatted = new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(Number(amount) || 0);
+    }).format(Math.abs(value));
+    return value < 0 ? `- ${formatted}` : formatted;
 };
 
 const pdfCurrency = (value: number) => {
@@ -93,6 +97,10 @@ const pdfCurrency = (value: number) => {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     })}`;
+};
+
+const printReport = () => {
+    window.print();
 };
 
 const exportPDF = async () => {
@@ -199,9 +207,17 @@ const annualBarChart = computed(() => {
                     </option>
                 </select>
                 <button
-                    v-if="props.user?.user_type === 'admin'"
+                    v-if="isAdmin"
+                    @click="printReport"
+                    class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-95 print:hidden"
+                >
+                    <Printer class="h-5 w-5" />
+                    Print
+                </button>
+                <button
+                    v-if="isAdmin"
                     @click="exportPDF"
-                    class="flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-bold text-white shadow-lg transition-all hover:bg-slate-800 active:scale-95"
+                    class="flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-bold text-white shadow-lg transition-all hover:bg-slate-800 active:scale-95 print:hidden"
                 >
                     <FileDown class="h-5 w-5" />
                     Export PDF
@@ -287,7 +303,7 @@ const annualBarChart = computed(() => {
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div v-if="isAdmin" class="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="flex items-center gap-2 border-b border-slate-100 p-6">
                     <PieChart class="h-5 w-5 text-blue-600" />
@@ -337,5 +353,5 @@ const annualBarChart = computed(() => {
         </div>
     </div>
 
-    <ConfirmDateChangeModal :show="showYearModal" :label="label" @confirm="confirmYearChange" @cancel="cancelYearChange" />
+    <ConfirmDateChangeModal :show="showYearModal" :label="label" :loading="yearLoading" @confirm="confirmYearChange" @cancel="cancelYearChange" />
 </template>

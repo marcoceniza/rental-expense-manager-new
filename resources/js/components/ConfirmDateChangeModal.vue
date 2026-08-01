@@ -5,6 +5,10 @@ import BaseButton from './base/BaseButton.vue';
 defineProps({
     show: Boolean,
     label: String,
+    loading: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 defineEmits(['confirm', 'cancel']);
@@ -70,6 +74,8 @@ defineEmits(['confirm', 'cancel']);
                             type="submit"
                             variant="primary"
                             size="sm"
+                            :loading="loading"
+                            :disabled="loading"
                             @click="$emit('confirm')"
                             class="shadow-lg shadow-blue-200 transition-all hover:shadow-xl hover:shadow-blue-300"
                         >

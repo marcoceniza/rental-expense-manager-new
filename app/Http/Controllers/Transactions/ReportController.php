@@ -33,14 +33,16 @@ class ReportController extends Controller
 
         // Parse month string safely (avoid timezone issues)
         [$year, $monthNum] = explode('-', $month);
-        $monthDate = \Carbon\Carbon::create($year, $monthNum, 1);
+        $monthDate = Carbon::create($year, $monthNum, 1);
 
         $start = $monthDate->copy()->startOfMonth();
         $end = $monthDate->copy()->endOfMonth();
 
         return [
             'month' => $monthDate->format('Y-m'),
-            'categories' => Category::all(),
+            'categories' => auth()->user()->isAdmin()
+                ? Category::all()
+                : Category::where('is_other', false)->get(),
             'monthlyReport' => $this->buildMonthlyReport($start, $end),
             'transactions' => Transaction::filtered($start, $end, auth()->user())
                 ->orderByDesc('transaction_date')
@@ -83,8 +85,9 @@ class ReportController extends Controller
         return Inertia::render('transactions/Reports', [
             'annualReport' => $this->getAnnualData($year),
             'year' => (int) $year,
-            'user' => auth()->user(),
-            'categories' => Category::all(),
+            'categories' => auth()->user()->isAdmin()
+                ? Category::all()
+                : Category::where('is_other', false)->get(),
             'categorySummary' => $this->categorySummary($request),
         ]);
     }

@@ -198,6 +198,7 @@ const deleteCategory = () => {
                     <div class="flex gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                         <button
                             @click="openModal(c)"
+                            title="Edit category"
                             class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                         >
                             <Pencil class="h-4 w-4" />

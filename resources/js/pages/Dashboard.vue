@@ -2,7 +2,8 @@
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { Category, Transaction } from '@/types';
-import { Head, Link, router } from '@inertiajs/vue3';
+import type { SharedData } from '@/types/shared';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { addMonths, format, parseISO, subMonths } from 'date-fns';
 import { ArrowDownRight, ArrowUpRight, CreditCard, LayoutDashboard, TrendingDown, TrendingUp, Wallet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -24,6 +25,12 @@ const props = defineProps<{
     categories: Category[];
     month: string;
 }>();
+
+const page = usePage<SharedData>();
+const isAdmin = computed(() => page.props.auth?.user?.user_type === 'admin');
+const viewAllHref = computed(() =>
+    isAdmin.value ? route('admin.transactions.index') : route('transactions.user'),
+);
 
 const currentMonth = ref(new Date(`${props.month}-01`));
 const showDateModal = ref(false);
@@ -70,6 +77,10 @@ const cancelChange = () => {
     pendingDate.value = null;
 };
 
+const goToCurrentMonth = () => {
+    handleChange(new Date());
+};
+
 const prevMonth = () => {
     handleChange(subMonths(currentMonth.value, 1));
 };
@@ -88,10 +99,12 @@ const label = computed(() => {
 });
 
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PH', {
+    const value = Number(amount) || 0;
+    const formatted = new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(amount);
+    }).format(Math.abs(value));
+    return value < 0 ? `- ${formatted}` : formatted;
 };
 
 const categoryMap = computed(() => {
@@ -131,18 +144,26 @@ const monthlyDonutOptions = {
                 <p class="mt-1 text-slate-500">Track your income and expenses efficiently.</p>
             </div>
 
-            <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-2 shadow-sm max-sm:justify-around">
-                <button @click="prevMonth" class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50">
-                    <ArrowDownRight class="h-5 w-5 rotate-90 text-slate-400" />
+            <div v-if="isAdmin" class="flex items-center gap-2">
+                <button
+                    @click="goToCurrentMonth"
+                    class="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+                >
+                    This Month
                 </button>
+                <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-2 shadow-sm max-sm:justify-around">
+                    <button @click="prevMonth" class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50">
+                        <ArrowDownRight class="h-5 w-5 rotate-90 text-slate-400" />
+                    </button>
 
-                <span class="min-w-35 text-center text-sm font-semibold text-slate-700">
-                    {{ label }}
-                </span>
+                    <span class="min-w-35 text-center text-sm font-semibold text-slate-700">
+                        {{ label }}
+                    </span>
 
-                <button @click="nextMonth" class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50">
-                    <ArrowUpRight class="h-5 w-5 -rotate-90 text-slate-400" />
-                </button>
+                    <button @click="nextMonth" class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50">
+                        <ArrowUpRight class="h-5 w-5 -rotate-90 text-slate-400" />
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -207,7 +228,7 @@ const monthlyDonutOptions = {
                 <div class="flex items-center justify-between border-b border-slate-100 p-6">
                     <h3 class="text-lg font-bold text-slate-900">Recent Activity</h3>
                     <Link
-                        :href="route('admin.transactions.index')"
+                        :href="viewAllHref"
                         class="cursor-pointer text-sm font-medium text-blue-600 transition-colors hover:text-blue-500"
                     >
                         View All
@@ -220,14 +241,14 @@ const monthlyDonutOptions = {
                             <tr>
                                 <th class="px-6 py-4">Date</th>
                                 <th class="px-6 py-4">Description</th>
-                                <th class="px-6 py-4">Category</th>
+                                <th v-if="isAdmin" class="px-6 py-4">Category</th>
                                 <th class="px-6 py-4 text-right">Amount</th>
                             </tr>
                         </thead>
 
                         <tbody class="divide-y divide-slate-100">
                             <tr v-if="(props.transactions || []).length === 0">
-                                <td colspan="4" class="px-6 py-12 text-center italic text-slate-400">No transactions recorded yet.</td>
+                                <td :colspan="isAdmin ? 4 : 3" class="px-6 py-12 text-center italic text-slate-400">No transactions recorded yet.</td>
                             </tr>
 
                             <tr v-for="t in (props.transactions || []).slice(0, 5)" :key="t.id" class="transition-colors hover:bg-slate-50">
@@ -239,14 +260,18 @@ const monthlyDonutOptions = {
                                     <p class="text-sm font-medium text-slate-900">{{ t.description }}</p>
                                 </td>
 
-                                <td class="px-6 py-4">
+                                <td v-if="isAdmin" class="px-6 py-4">
                                     <span class="rounded-full px-2.5 py-1 text-xs font-semibold text-slate-900">
                                         {{ categoryMap[t.category_id] || 'Uncategorized' }}
                                     </span>
                                 </td>
 
                                 <td class="px-6 py-4 text-right">
-                                    <span class="text-sm font-bold" :class="t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'">
+                                    <span class="text-sm font-bold" :class="{
+                                        'text-emerald-600': t.type === 'income',
+                                        'text-red-600': t.type === 'expense',
+                                        'text-amber-600': t.type === 'liability',
+                                    }">
                                         {{ t.type === 'income' ? '+' : '-' }}
                                         {{ formatCurrency(t.amount) }}
                                     </span>

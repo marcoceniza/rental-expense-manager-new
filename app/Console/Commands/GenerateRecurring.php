@@ -26,9 +26,20 @@ class GenerateRecurring extends Command
     {
         $today = Carbon::today();
 
-        $recurrings = Recurring::query()->get();
+        $recurrings = Recurring::with('category')->get();
 
         foreach ($recurrings as $recurring) {
+            $startDate = Carbon::parse($recurring->start_date);
+
+            // Do not generate before the recurring's start date
+            if ($today->lt($startDate->startOfDay())) {
+                continue;
+            }
+
+            // Do not generate after the recurring's end date
+            if ($recurring->end_date && $today->gt(Carbon::parse($recurring->end_date)->endOfDay())) {
+                continue;
+            }
 
             $alreadyGenerated = Transaction::query()
                 ->where('recurring_id', $recurring->id)
@@ -41,7 +52,8 @@ class GenerateRecurring extends Command
                 continue;
             }
 
-            if ($today->day < Carbon::parse($recurring->start_date)->day) {
+            // Only generate on or after the day-of-month the recurring is set to fire
+            if ($today->day < $startDate->day) {
                 continue;
             }
 
@@ -50,7 +62,7 @@ class GenerateRecurring extends Command
                 'amount' => $recurring->amount,
                 'description' => $recurring->description,
                 'transaction_date' => $today,
-                'type' => 'expense',
+                'type' => $recurring->category?->type ?? 'expense',
                 'recurring_id' => $recurring->id,
                 'is_recurring_generated' => true,
             ]);
