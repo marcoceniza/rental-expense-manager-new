@@ -1,12 +1,7 @@
 <script setup lang="ts">
+import type { Category } from '@/types';
 import { X } from 'lucide-vue-next';
 import BaseButton from './base/BaseButton.vue';
-
-interface Category {
-    id: number;
-    name: string;
-    type: string;
-}
 
 interface FormData {
     transaction_date: string;

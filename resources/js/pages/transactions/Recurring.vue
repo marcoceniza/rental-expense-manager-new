@@ -1,40 +1,20 @@
 <script setup lang="ts">
 import RecurringModal from '@/components/RecurringModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import type { Recurring, RecurringCategoryOption } from '@/types';
+import { format, parseISO } from 'date-fns';
 import { Head, router } from '@inertiajs/vue3';
 import { Pencil, Plus, Repeat, Trash2 } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
-interface TransactionDescription {
-    description: string;
-    amount: number;
-}
-
-interface Category {
-    id: number;
-    name: string;
-    type: string;
-    description?: string;
-    amount?: number;
-    transaction_descriptions?: TransactionDescription[];
-}
-
-interface RecurringTransaction {
-    id: number;
-    category_id: number;
-    amount: number;
-    frequency: string;
-    start_date: string;
-    description: string;
-}
-
 interface Props {
-    recurringTransactions?: RecurringTransaction[];
-    categories?: Category[];
+    recurringTransactions?: Recurring[];
+    categories?: RecurringCategoryOption[];
     errors?: Record<string, string[]>;
 }
 
@@ -74,7 +54,7 @@ const openModal = () => {
     showModal.value = true;
 };
 
-const editRecurring = (r: RecurringTransaction) => {
+const editRecurring = async (r: Recurring) => {
     isEditMode.value = true;
     editingId.value = r.id;
 
@@ -82,9 +62,15 @@ const editRecurring = (r: RecurringTransaction) => {
         category_id: r.category_id,
         amount: r.amount,
         frequency: r.frequency,
-        start_date: r.start_date,
+        start_date: format(parseISO(r.start_date), 'yyyy-MM-dd'),
         description: r.description,
     };
+
+    // The category_id watcher fires synchronously and overwrites description/amount,
+    // so restore the real values on the next tick.
+    await nextTick();
+    formData.value.description = r.description;
+    formData.value.amount = r.amount;
 
     showModal.value = true;
 };
@@ -161,8 +147,8 @@ watch(
             return;
         }
 
-        formData.value.description = selectedCategory.description ?? '';
-        formData.value.amount = selectedCategory.amount ?? 0;
+        formData.value.description = '';
+        formData.value.amount = 0;
     },
 );
 
@@ -182,10 +168,12 @@ watch(
 );
 
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PH', {
+    const value = Number(amount) || 0;
+    const formatted = new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(amount);
+    }).format(Math.abs(value));
+    return value < 0 ? `- ${formatted}` : formatted;
 };
 </script>
 
@@ -224,6 +212,7 @@ const formatCurrency = (amount: number) => {
                     <div class="flex items-center gap-2">
                         <button
                             @click="editRecurring(r)"
+                            title="Edit recurring transaction"
                             class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                         >
                             <Pencil class="h-5 w-5" />
@@ -231,6 +220,7 @@ const formatCurrency = (amount: number) => {
 
                         <button
                             @click="deleteRecurring(r.id)"
+                            title="Delete recurring transaction"
                             class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
                         >
                             <Trash2 class="h-5 w-5" />

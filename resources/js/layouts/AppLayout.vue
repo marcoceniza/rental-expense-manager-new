@@ -10,7 +10,7 @@ import Sidebar from '../components/Sidebar.vue';
 
 const page = usePage<SharedData>();
 const notyf = new Notyf({
-    duration: 3000,
+    duration: 6000,
     position: {
         x: 'right',
         y: 'top',
@@ -49,13 +49,17 @@ provide('handleLogout', handleLogout);
 <template>
     <div class="flex min-h-screen bg-slate-50">
 
-        <Sidebar v-if="!isAuthPage" />
+        <div v-if="!isAuthPage" class="print:hidden">
+            <Sidebar />
+        </div>
 
         <main class="flex min-h-screen min-w-0 flex-1 flex-col">
-            <MobileHeader v-if="!isAuthPage" />
+            <div v-if="!isAuthPage" class="print:hidden">
+                <MobileHeader />
+            </div>
 
-            <div class="flex-1 p-4 md:p-8">
-                <div :class="!isAuthPage ? 'mx-auto max-w-6xl' : 'h-full w-full'">
+            <div class="flex-1 p-4 md:p-8 print:p-0">
+                <div :class="!isAuthPage ? 'mx-auto max-w-6xl print:max-w-none' : 'h-full w-full'">
                     <slot />
                 </div>
             </div>

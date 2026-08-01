@@ -12,6 +12,7 @@ import type { SharedData, Category, CharityStats, CharityTransaction } from '@/t
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
 const props = defineProps<{
@@ -29,6 +30,7 @@ const charityRoute = isAdmin ? route('admin.charity') : route('charity');
 const currentYear = ref<number>(props.year);
 const pendingYear = ref<number | null>(null);
 const showYearModal = ref(false);
+const yearLoading = ref(false);
 
 const showModal = ref(false);
 const editingId = ref<number | null>(null);
@@ -88,6 +90,8 @@ const nextYear = () => handleYearChange(currentYear.value + 1);
 
 const confirmYearChange = () => {
     if (pendingYear.value !== null) {
+        yearLoading.value = true;
+
         router.get(
             charityRoute,
             { year: pendingYear.value },
@@ -188,10 +192,12 @@ const deleteTransaction = () => {
 };
 
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PH', {
+    const value = Number(amount) || 0;
+    const formatted = new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(amount ?? 0);
+    }).format(Math.abs(value));
+    return value < 0 ? `- ${formatted}` : formatted;
 };
 </script>
 
@@ -244,17 +250,21 @@ const formatCurrency = (amount: number) => {
                         <tr>
                             <th class="px-6 py-4">Date</th>
                             <th class="px-6 py-4">Description</th>
-                            <th class="px-6 py-4">Category</th>
+                            <th v-if="isAdmin" class="px-6 py-4">Category</th>
                             <th class="px-6 py-4">Amount</th>
-                            <th class="px-6 py-4">Added By</th>
+                            <th v-if="isAdmin" class="px-6 py-4">Added By</th>
                             <th v-if="isAdmin" class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
                         <tr v-if="(props.charityStats?.transactions?.data ?? []).length === 0">
-                            <td :colspan="isAdmin ? 5 : 4" class="px-6 py-12 text-center italic text-slate-400">
-                                No tuition-related transactions found for this year.
+                            <td :colspan="isAdmin ? 6 : 3" class="px-6 py-16 text-center text-slate-400">
+                                <div class="flex flex-col items-center gap-3">
+                                    <Heart class="h-10 w-10 text-slate-300" />
+                                    <p class="font-medium italic">No tuition-related transactions found for this year.</p>
+                                    <p class="text-sm">Try selecting a different year using the navigation above.</p>
+                                </div>
                             </td>
                         </tr>
 
@@ -273,20 +283,24 @@ const formatCurrency = (amount: number) => {
                                 </p>
                             </td>
 
-                            <td class="px-6 py-4">
+                            <td v-if="isAdmin" class="px-6 py-4">
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
                                     {{ categoryMap[t.category_id] || 'Uncategorized' }}
                                 </span>
                             </td>
 
                             <td class="px-6 py-4">
-                                <span class="text-sm font-bold" :class="t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'">
+                                <span class="text-sm font-bold" :class="{
+                                    'text-emerald-600': t.type === 'income',
+                                    'text-red-600': t.type === 'expense',
+                                    'text-amber-600': t.type === 'liability',
+                                }">
                                     {{ t.type === 'income' ? '+' : '-' }}
                                     {{ formatCurrency(t.amount) }}
                                 </span>
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-slate-600 text-center">
+                            <td v-if="isAdmin" class="px-6 py-4 text-sm text-slate-600 text-center">
                                 {{ t.user?.name || '-' }}
                             </td>
 
@@ -294,6 +308,7 @@ const formatCurrency = (amount: number) => {
                                 <div class="flex items-center justify-center gap-2 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                                     <button
                                         @click="openModal(t)"
+                                        title="Edit transaction"
                                         class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                                     >
                                         <Pencil class="h-4 w-4" />
@@ -301,6 +316,7 @@ const formatCurrency = (amount: number) => {
 
                                     <button
                                         @click="confirmDeleteHandler(t.id, t.description)"
+                                        title="Delete transaction"
                                         class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
                                     >
                                         <Trash2 class="h-4 w-4" />
@@ -336,6 +352,6 @@ const formatCurrency = (amount: number) => {
             @close="confirmDelete.show = false"
         />
 
-        <ConfirmDateChangeModal :show="showYearModal" :label="label" @confirm="confirmYearChange" @cancel="cancelYearChange" />
+        <ConfirmDateChangeModal :show="showYearModal" :label="label" :loading="yearLoading" @confirm="confirmYearChange" @cancel="cancelYearChange" />
     </div>
 </template>

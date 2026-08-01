@@ -1,19 +1,8 @@
 <script setup lang="ts">
+import type { RecurringCategoryOption } from '@/types';
 import BaseButton from '@/components/base/BaseButton.vue';
 import { X } from 'lucide-vue-next';
 import { computed } from 'vue';
-
-interface TransactionDescription {
-    description: string;
-    amount: number;
-}
-
-interface Category {
-    id: number;
-    name: string;
-    type: string;
-    transaction_descriptions?: TransactionDescription[];
-}
 
 interface FormData {
     category_id: number | string;
@@ -27,7 +16,7 @@ interface Props {
     isOpen: boolean;
     editingId?: number | null;
     formData: FormData;
-    categories: Category[];
+    categories: RecurringCategoryOption[];
     loading?: boolean;
     errors?: Record<string, string[]>;
 }

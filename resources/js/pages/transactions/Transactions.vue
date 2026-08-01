@@ -7,17 +7,18 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { Auth, Category, Transaction, PaginatedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
-import { Filter, LoaderCircle, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
+import { LoaderCircle, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 defineOptions({
     layout: AppLayout,
+    inheritAttrs: false,
 });
 
 const props = defineProps<{
     transactions: PaginatedData<Transaction>;
     categories: Category[];
-    trashed: PaginatedData<Transaction>;
+    trashed: PaginatedData<Transaction> | Transaction[];
     trashedCount: number;
     auth: Auth;
     currentDate: string;
@@ -103,13 +104,37 @@ const filteredTransactions = computed(() => {
 
 const filteredCategories = computed(() => props.categories.filter((c: Category) => c.type === form.type));
 
+const normalizedTrashed = computed(() => {
+    return Array.isArray(props.trashed) ? { data: props.trashed } : props.trashed;
+});
+
+const filteredTotals = computed(() => {
+    return filteredTransactions.value.reduce(
+        (acc, t) => {
+            const amount = Number(t.amount) || 0;
+            if (t.type === 'income') acc.income += amount;
+            else if (t.type === 'expense') acc.expense += amount;
+            else if (t.type === 'liability') acc.liability += amount;
+            return acc;
+        },
+        { income: 0, expense: 0, liability: 0 },
+    );
+});
+
 const categoryTypes = ['income', 'expense', 'liability'];
 
-const openModal = (t: any = null) => {
+const openModal = (t: Transaction | null = null) => {
     if (t) {
         editingId.value = t.id;
         form.clearErrors();
-        form.defaults(t);
+        form.defaults({
+            transaction_date: format(parseISO(t.transaction_date), 'yyyy-MM-dd'),
+            type: t.type,
+            category_id: String(t.category_id),
+            description: t.description,
+            amount: t.amount,
+            remarks: t.remarks || '',
+        });
         form.reset();
     } else {
         editingId.value = null;
@@ -181,10 +206,17 @@ const deletePermanent = (id: number) => {
 };
 
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PH', {
+    const value = Number(amount) || 0;
+    const formatted = new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(amount);
+    }).format(Math.abs(value));
+    return value < 0 ? `- ${formatted}` : formatted;
+};
+
+const goToCurrentMonth = () => {
+    monthFilter.value = String(new Date().getMonth() + 1).padStart(2, '0');
+    applyFilters('month');
 };
 </script>
 
@@ -235,7 +267,7 @@ const formatCurrency = (amount: number) => {
             </div>
 
             <div class="flex w-full items-center gap-2 md:w-auto">
-                <Filter class="h-5 w-5 text-slate-400" />
+                <span class="whitespace-nowrap text-sm font-semibold text-slate-500">Type:</span>
                 <select
                     v-model="typeFilter"
                     @change="applyFilters('type')"
@@ -249,7 +281,7 @@ const formatCurrency = (amount: number) => {
             </div>
 
             <div class="flex w-full items-center gap-2 md:w-auto">
-                <Filter class="h-5 w-5 text-slate-400" />
+                <span class="whitespace-nowrap text-sm font-semibold text-slate-500">Month:</span>
                 <div class="flex items-center gap-2">
                     <select
                         v-model="monthFilter"
@@ -272,6 +304,13 @@ const formatCurrency = (amount: number) => {
                         <option value="12">December</option>
                     </select>
                     <LoaderCircle v-if="isMonthFiltering" class="h-4 w-4 animate-spin text-blue-600" />
+                    <button
+                        @click="goToCurrentMonth"
+                        :disabled="isMonthFiltering"
+                        class="cursor-pointer whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                        This Month
+                    </button>
                 </div>
             </div>
         </div>
@@ -283,16 +322,16 @@ const formatCurrency = (amount: number) => {
                         <tr>
                             <th class="px-6 py-4">Date</th>
                             <th class="px-6 py-4">Description</th>
-                            <th class="px-6 py-4">Category</th>
+                            <th v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">Category</th>
                             <th class="px-6 py-4">Amount</th>
-                            <th class="px-6 py-4">Added By</th>
+                            <th v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">Added By</th>
                             <th v-if="auth.user?.user_type === 'admin'" class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
                         <tr v-if="isMonthFiltering">
-                            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                            <td :colspan="auth.user?.user_type === 'admin' ? 6 : 3" class="px-6 py-12 text-center text-slate-500">
                                 <div class="flex items-center justify-center gap-2">
                                     <LoaderCircle class="h-4 w-4 animate-spin text-blue-600" />
                                     <span>Loading transactions...</span>
@@ -301,7 +340,19 @@ const formatCurrency = (amount: number) => {
                         </tr>
 
                         <tr v-else-if="filteredTransactions.length === 0">
-                            <td colspan="6" class="px-6 py-12 text-center italic text-slate-400">No transactions found.</td>
+                            <td :colspan="auth.user?.user_type === 'admin' ? 6 : 3" class="px-6 py-12 text-center text-slate-400">
+                                <p class="font-medium italic">No transactions found.</p>
+                                <p v-if="monthFilter !== 'all'" class="mt-2 text-sm">
+                                    No records for the selected month. Try a different month or
+                                    <button
+                                        @click="monthFilter = 'all'; applyFilters('month')"
+                                        class="cursor-pointer text-blue-600 underline hover:text-blue-700"
+                                    >
+                                        show all months
+                                    </button>.
+                                </p>
+                                <p v-else-if="searchQuery" class="mt-2 text-sm">Try a different search term.</p>
+                            </td>
                         </tr>
 
                         <tr v-else v-for="t in filteredTransactions" :key="t.id" class="group transition-colors hover:bg-slate-50">
@@ -314,7 +365,7 @@ const formatCurrency = (amount: number) => {
                                 <p class="text-sm font-medium text-slate-900">{{ t.description }}</p>
                                 <p v-if="t.remarks" class="mt-0.5 text-xs text-slate-400">{{ t.remarks }}</p>
                             </td>
-                            <td class="px-6 py-4">
+                            <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">
                                 <span
                                     class="rounded-full px-2.5 py-1 text-xs font-semibold"
                                     :class="{
@@ -327,17 +378,22 @@ const formatCurrency = (amount: number) => {
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-sm font-bold" :class="t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'">
+                                <span class="text-sm font-bold" :class="{
+                                    'text-emerald-600': t.type === 'income',
+                                    'text-red-600': t.type === 'expense',
+                                    'text-amber-600': t.type === 'liability',
+                                }">
                                     {{ t.type === 'income' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-slate-600 text-center">
+                            <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4 text-sm text-slate-600 text-center">
                                 {{ t.user?.name || '-' }}
                             </td>
                             <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                                     <button
                                         @click="openModal(t)"
+                                        title="Edit transaction"
                                         class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                                     >
                                         <Pencil class="h-4 w-4" />
@@ -345,6 +401,7 @@ const formatCurrency = (amount: number) => {
 
                                     <button
                                         @click="confirmDeleteHandler(t.id, t.description)"
+                                        title="Delete transaction"
                                         class="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
                                     >
                                         <Trash2 class="h-4 w-4" />
@@ -353,6 +410,19 @@ const formatCurrency = (amount: number) => {
                             </td>
                         </tr>
                     </tbody>
+                        <tfoot v-if="filteredTransactions.length > 0" class="border-t-2 border-slate-200 bg-slate-50">
+                        <tr>
+                            <td :colspan="auth.user?.user_type === 'admin' ? 3 : 2" class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Filtered Totals</td>
+                            <td class="px-6 py-3">
+                                <div class="space-y-1 text-sm font-bold">
+                                    <div class="text-emerald-600">Income: {{ formatCurrency(filteredTotals.income) }}</div>
+                                    <div class="text-red-600">Expense: {{ formatCurrency(filteredTotals.expense) }}</div>
+                                    <div class="text-amber-600">Liability: {{ formatCurrency(filteredTotals.liability) }}</div>
+                                </div>
+                            </td>
+                            <td v-if="auth.user?.user_type === 'admin'" colspan="2"></td>
+                        </tr>
+                    </tfoot>
                 </table>
                 <BasePagination v-if="transactions.last_page > 1" :pagination="transactions" />
             </div>
@@ -382,7 +452,7 @@ const formatCurrency = (amount: number) => {
 
         <TransactionTrashModal
             :show="showTrashModal"
-            :trashed="trashed"
+            :trashed="normalizedTrashed"
             :trashedCount="trashedCount"
             :formatCurrency="formatCurrency"
             :restore="restoreTransaction"

@@ -1,15 +1,10 @@
 <script setup lang="ts">
+import type { User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { LogOut, X } from 'lucide-vue-next';
 import { computed, inject, type Ref } from 'vue';
 import { useNavItems } from '../composables/useNavItems';
 import logo2 from '../images/logo2.png';
-
-interface User {
-    name: string;
-    email: string;
-    user_type: string;
-}
 
 const { navItems } = useNavItems();
 const page = usePage();
