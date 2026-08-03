@@ -22,6 +22,12 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const visibleCount = computed(() => {
+    const dataLength = props.pagination?.links?.length ?? 0;
+
+    return dataLength > 0 ? 15 : 0;
+});
+
 const goToPage = (url: string | null) => {
     if (!url) return;
 
@@ -100,7 +106,9 @@ const visiblePages = computed(() => {
         v-if="pagination.last_page > 1"
         class="mt-6 flex items-center justify-between rounded-bl-2xl rounded-br-2xl rounded-tl-none rounded-tr-none border-t border-slate-200 bg-white px-4 py-3"
     >
-        <p class="text-sm text-slate-500">Page {{ pagination.current_page }} of {{ pagination.last_page }}</p>
+        <p class="text-sm text-slate-500">
+            Showing {{ visibleCount }} per page · Page {{ pagination.current_page }} of {{ pagination.last_page }}
+        </p>
 
         <div class="flex items-center gap-2">
             <button

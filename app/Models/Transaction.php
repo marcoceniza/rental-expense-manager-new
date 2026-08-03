@@ -51,7 +51,7 @@ class Transaction extends Model
     {
         $user = $user ?? auth()->user();
 
-        $query->with('category');
+        $query->with(['category', 'user']);
 
         if ($start && $end) {
             $query->whereBetween('transaction_date', [$start, $end]);

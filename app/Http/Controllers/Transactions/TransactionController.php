@@ -23,6 +23,9 @@ class TransactionController extends Controller
         $type = $request->query('type');
 
         $query = Transaction::with(['category', 'user'])
+            ->whereHas('category', function ($q) {
+                $q->where('is_tuition', false)->where('is_other', false);
+            })
             ->orderByDesc('transaction_date')
             ->orderByDesc('created_at');
 
@@ -31,7 +34,7 @@ class TransactionController extends Controller
         }
 
         if (is_numeric($month) && ((int) $month >= 1 && (int) $month <= 12)) {
-            $transactions = $query->whereMonth('transaction_date', (int) $month)->get();
+            $transactions = $query->whereMonth('transaction_date', (int) $month)->paginate(15);
         } else {
             $transactions = $query->paginate(15);
         }
@@ -57,7 +60,7 @@ class TransactionController extends Controller
         $month = $request->query('month');
         $type = $request->query('type');
 
-        $query = Transaction::with('category')
+        $query = Transaction::with(['category', 'user'])
             ->filtered(null, null, auth()->user())
             ->orderByDesc('transaction_date')
             ->orderByDesc('created_at');
@@ -67,7 +70,7 @@ class TransactionController extends Controller
         }
 
         if (is_numeric($month) && ((int) $month >= 1 && (int) $month <= 12)) {
-            $transactions = $query->whereMonth('transaction_date', (int) $month)->get();
+            $transactions = $query->whereMonth('transaction_date', (int) $month)->paginate(15);
         } else {
             $transactions = $query->paginate(15);
         }

@@ -44,6 +44,19 @@ const form = useForm({
     remarks: '',
 });
 
+const resetFormState = () => {
+    form.clearErrors();
+    form.defaults({
+        transaction_date: props.currentDate,
+        type: 'income',
+        category_id: '',
+        description: '',
+        amount: 0,
+        remarks: '',
+    });
+    form.reset();
+};
+
 const confirmDelete = ref<{
     show: boolean;
     id: number | null;
@@ -138,9 +151,7 @@ const openModal = (t: Transaction | null = null) => {
         form.reset();
     } else {
         editingId.value = null;
-        form.clearErrors();
-        form.reset();
-        form.transaction_date = props.currentDate;
+        resetFormState();
     }
 
     showModal.value = true;
@@ -149,7 +160,7 @@ const openModal = (t: Transaction | null = null) => {
 const closeModal = () => {
     showModal.value = false;
     editingId.value = null;
-    form.reset();
+    resetFormState();
 };
 
 const handleSubmit = () => {
