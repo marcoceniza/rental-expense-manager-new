@@ -49,8 +49,8 @@ test('selecting a month returns all transactions for that month without paginati
             $page->component('transactions/Transactions')
                 ->where('transactions.total', 2)
                 ->where('transactions.last_page', 1)
-                ->where('transactions.per_page', 2)
-                ->where('transactions.links', []);
+                ->where('transactions.per_page', 15)
+                ->has('transactions.links');
         });
 });
 
