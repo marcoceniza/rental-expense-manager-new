@@ -1,6 +1,6 @@
 import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
-import { FileChartPie, Heart, LayoutDashboard, LayoutGrid, ReceiptText, Repeat, Tag, UserPlus } from 'lucide-vue-next';
+import { FileChartPie, FileText, Heart, LayoutDashboard, LayoutGrid, ReceiptText, Repeat, Tag, UserPlus } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { route } from 'ziggy-js';
 
@@ -36,6 +36,7 @@ export function useNavItems() {
             { name: 'Categories', path: safeRoute('admin.categories.index'), icon: Tag },
             { name: 'Others', path: safeRoute('admin.others'), icon: LayoutGrid },
             { name: 'Create User', path: safeRoute('admin.register'), icon: UserPlus },
+            { name: 'Activity Logs', path: safeRoute('admin.logs'), icon: FileText },
         ];
 
         return isAdmin ? adminItems : userItems;

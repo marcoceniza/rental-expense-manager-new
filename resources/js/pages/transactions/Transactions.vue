@@ -4,7 +4,7 @@ import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import TransactionModal from '@/components/TransactionModal.vue';
 import TransactionTrashModal from '@/components/TransactionTrashModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Auth, Category, Transaction, PaginatedData } from '@/types';
+import type { Auth, Category, PaginatedData, Transaction } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { LoaderCircle, Pencil, Plus, ReceiptText, Search, Trash2 } from 'lucide-vue-next';
@@ -76,20 +76,24 @@ const applyFilters = (source: 'month' | 'type' = 'month') => {
         isMonthFiltering.value = true;
     }
 
-    router.get(baseUrl, {
-        month: monthFilter.value,
-        type: typeFilter.value,
-        page: 1,
-    }, {
-        preserveScroll: true,
-        preserveState: true,
-        replace: true,
-        onFinish: () => {
-            if (source === 'month') {
-                isMonthFiltering.value = false;
-            }
+    router.get(
+        baseUrl,
+        {
+            month: monthFilter.value,
+            type: typeFilter.value,
+            page: 1,
         },
-    });
+        {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            onFinish: () => {
+                if (source === 'month') {
+                    isMonthFiltering.value = false;
+                }
+            },
+        },
+    );
 };
 
 const filteredTransactions = computed(() => {
@@ -356,11 +360,14 @@ const goToCurrentMonth = () => {
                                 <p v-if="monthFilter !== 'all'" class="mt-2 text-sm">
                                     No records for the selected month. Try a different month or
                                     <button
-                                        @click="monthFilter = 'all'; applyFilters('month')"
+                                        @click="
+                                            monthFilter = 'all';
+                                            applyFilters('month');
+                                        "
                                         class="cursor-pointer text-blue-600 underline hover:text-blue-700"
                                     >
-                                        show all months
-                                    </button>.
+                                        show all months</button
+                                    >.
                                 </p>
                                 <p v-else-if="searchQuery" class="mt-2 text-sm">Try a different search term.</p>
                             </td>
@@ -389,15 +396,18 @@ const goToCurrentMonth = () => {
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-sm font-bold" :class="{
-                                    'text-emerald-600': t.type === 'income',
-                                    'text-red-600': t.type === 'expense',
-                                    'text-amber-600': t.type === 'liability',
-                                }">
+                                <span
+                                    class="text-sm font-bold"
+                                    :class="{
+                                        'text-emerald-600': t.type === 'income',
+                                        'text-red-600': t.type === 'expense',
+                                        'text-amber-600': t.type === 'liability',
+                                    }"
+                                >
                                     {{ t.type === 'income' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
                                 </span>
                             </td>
-                            <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4 text-sm text-slate-600 text-center">
+                            <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4 text-center text-sm text-slate-600">
                                 {{ t.user?.name || '-' }}
                             </td>
                             <td v-if="auth.user?.user_type === 'admin'" class="px-6 py-4">
@@ -421,9 +431,14 @@ const goToCurrentMonth = () => {
                             </td>
                         </tr>
                     </tbody>
-                        <tfoot v-if="filteredTransactions.length > 0" class="border-t-2 border-slate-200 bg-slate-50">
+                    <tfoot v-if="filteredTransactions.length > 0" class="border-t-2 border-slate-200 bg-slate-50">
                         <tr>
-                            <td :colspan="auth.user?.user_type === 'admin' ? 3 : 2" class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Filtered Totals</td>
+                            <td
+                                :colspan="auth.user?.user_type === 'admin' ? 3 : 2"
+                                class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-400"
+                            >
+                                Filtered Totals
+                            </td>
                             <td class="px-6 py-3">
                                 <div class="space-y-1 text-sm font-bold">
                                     <div class="text-emerald-600">Income: {{ formatCurrency(filteredTotals.income) }}</div>

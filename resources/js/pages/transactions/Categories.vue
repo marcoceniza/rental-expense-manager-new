@@ -208,9 +208,11 @@ const deleteCategory = () => {
                             @click="confirmDeleteHandler(c.id, c.name)"
                             :disabled="(c.transactions_count ?? 0) > 0"
                             :title="(c.transactions_count ?? 0) > 0 ? 'Category is in use and cannot be deleted' : 'Delete category'"
-                            :class="(
-                                c.transactions_count ?? 0
-                            ) > 0 ? 'rounded-lg p-2 text-slate-400 transition-colors cursor-not-allowed opacity-50' : 'rounded-lg p-2 text-slate-400 transition-colors cursor-pointer hover:bg-red-50 hover:text-red-600'"
+                            :class="
+                                (c.transactions_count ?? 0) > 0
+                                    ? 'cursor-not-allowed rounded-lg p-2 text-slate-400 opacity-50 transition-colors'
+                                    : 'cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600'
+                            "
                         >
                             <Trash2 class="h-4 w-4" />
                         </button>

@@ -19,7 +19,7 @@ const handleLogout = inject<() => void>('handleLogout');
 </script>
 
 <template>
-    <div v-if="isMenuOpen" class="z-[9998] fixed inset-0 bg-slate-900/50 backdrop-blur-sm md:hidden" />
+    <div v-if="isMenuOpen" class="fixed inset-0 z-[9998] bg-slate-900/50 backdrop-blur-sm md:hidden" />
 
     <button class="fixed right-4 top-4 z-[10001] md:hidden" @click="toggleMenu">
         <X v-show="isMenuOpen" class="h-6 w-6 text-white" />
@@ -27,7 +27,7 @@ const handleLogout = inject<() => void>('handleLogout');
 
     <aside
         v-if="!isAuthPage"
-        class="z-[9999] fixed left-0 top-0 flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-900 text-white transition-transform duration-300 md:sticky md:translate-x-0"
+        class="fixed left-0 top-0 z-[9999] flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-900 text-white transition-transform duration-300 md:sticky md:translate-x-0"
         :class="isMenuOpen ? 'translate-x-0' : '-translate-x-full'"
     >
         <div class="border-b border-slate-800 p-6">

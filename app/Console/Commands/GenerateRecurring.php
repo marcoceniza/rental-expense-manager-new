@@ -31,13 +31,18 @@ class GenerateRecurring extends Command
         foreach ($recurrings as $recurring) {
             $startDate = Carbon::parse($recurring->start_date);
 
+            // Skip inactive recurrings
+            if (! $recurring->is_active) {
+                continue;
+            }
+
             // Do not generate before the recurring's start date
             if ($today->lt($startDate->startOfDay())) {
                 continue;
             }
 
-            // Do not generate after the recurring's end date
-            if ($recurring->end_date && $today->gt(Carbon::parse($recurring->end_date)->endOfDay())) {
+            // Do not generate after the recurring's end date if column exists
+            if (! is_null($recurring->getAttribute('end_date')) && $today->gt(Carbon::parse($recurring->end_date)->endOfDay())) {
                 continue;
             }
 

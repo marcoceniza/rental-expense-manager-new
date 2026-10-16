@@ -28,9 +28,7 @@ const props = defineProps<{
 
 const page = usePage<SharedData>();
 const isAdmin = computed(() => page.props.auth?.user?.user_type === 'admin');
-const viewAllHref = computed(() =>
-    isAdmin.value ? route('admin.transactions.index') : route('transactions.user'),
-);
+const viewAllHref = computed(() => (isAdmin.value ? route('admin.transactions.index') : route('transactions.user')));
 
 const currentMonth = ref(new Date(`${props.month}-01`));
 const showDateModal = ref(false);
@@ -227,10 +225,7 @@ const monthlyDonutOptions = {
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:w-4/5">
                 <div class="flex items-center justify-between border-b border-slate-100 p-6">
                     <h3 class="text-lg font-bold text-slate-900">Recent Activity</h3>
-                    <Link
-                        :href="viewAllHref"
-                        class="cursor-pointer text-sm font-medium text-blue-600 transition-colors hover:text-blue-500"
-                    >
+                    <Link :href="viewAllHref" class="cursor-pointer text-sm font-medium text-blue-600 transition-colors hover:text-blue-500">
                         View All
                     </Link>
                 </div>
@@ -267,11 +262,14 @@ const monthlyDonutOptions = {
                                 </td>
 
                                 <td class="px-6 py-4 text-right">
-                                    <span class="text-sm font-bold" :class="{
-                                        'text-emerald-600': t.type === 'income',
-                                        'text-red-600': t.type === 'expense',
-                                        'text-amber-600': t.type === 'liability',
-                                    }">
+                                    <span
+                                        class="text-sm font-bold"
+                                        :class="{
+                                            'text-emerald-600': t.type === 'income',
+                                            'text-red-600': t.type === 'expense',
+                                            'text-amber-600': t.type === 'liability',
+                                        }"
+                                    >
                                         {{ t.type === 'income' ? '+' : '-' }}
                                         {{ formatCurrency(t.amount) }}
                                     </span>

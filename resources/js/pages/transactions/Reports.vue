@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
+import logoUrl from '@/images/logo.png';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { AnnualReport, CategorySummary, SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -9,7 +10,6 @@ import autoTable from 'jspdf-autotable';
 import { BarChart3, Calendar, FileChartPie, FileDown, PieChart, Printer } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { route } from 'ziggy-js';
-import logoUrl from '@/images/logo.png';
 
 defineOptions({
     layout: AppLayout,
@@ -66,12 +66,10 @@ const handleYearSelect = (event: Event) => {
 const confirmYearChange = () => {
     yearLoading.value = true;
 
-    const routeName = isAdmin.value
-        ? 'admin.reports'
-        : 'reports';
+    const routeName = isAdmin.value ? 'admin.reports' : 'reports';
 
     router.get(route(routeName), {
-        year: pendingYear.value
+        year: pendingYear.value,
     });
 };
 

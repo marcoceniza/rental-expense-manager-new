@@ -294,17 +294,20 @@ const deleteTransaction = () => {
                             </td>
 
                             <td class="px-6 py-4">
-                                <span class="text-sm font-bold" :class="{
-                                    'text-emerald-600': t.type === 'income',
-                                    'text-red-600': t.type === 'expense',
-                                    'text-amber-600': t.type === 'liability',
-                                }">
+                                <span
+                                    class="text-sm font-bold"
+                                    :class="{
+                                        'text-emerald-600': t.type === 'income',
+                                        'text-red-600': t.type === 'expense',
+                                        'text-amber-600': t.type === 'liability',
+                                    }"
+                                >
                                     {{ t.type === 'income' ? '+' : '-' }}
                                     {{ formatCurrency(t.amount) }}
                                 </span>
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-slate-600 text-center">
+                            <td class="px-6 py-4 text-center text-sm text-slate-600">
                                 {{ t.user?.name || '-' }}
                             </td>
 

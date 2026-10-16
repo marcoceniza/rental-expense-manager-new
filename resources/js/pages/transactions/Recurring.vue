@@ -2,8 +2,8 @@
 import RecurringModal from '@/components/RecurringModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { Recurring, RecurringCategoryOption } from '@/types';
-import { format, parseISO } from 'date-fns';
 import { Head, router } from '@inertiajs/vue3';
+import { format, parseISO } from 'date-fns';
 import { Pencil, Plus, Repeat, Trash2 } from 'lucide-vue-next';
 import { computed, nextTick, ref, watch } from 'vue';
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Spatie\Activitylog\Models\Activity;
 
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
@@ -20,6 +21,12 @@ test('users can authenticate using the login screen', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
+
+    $activity = Activity::query()->where('event', 'login')->latest()->first();
+
+    expect($activity)->not->toBeNull()
+        ->and($activity->causer_id)->toBe($user->id)
+        ->and($activity->causer->name)->toBe($user->name);
 });
 
 test('admin users are redirected to the admin dashboard after login', function () {
@@ -62,4 +69,10 @@ test('users can logout', function () {
 
     $this->assertGuest();
     $response->assertRedirect(route('login', absolute: false));
+
+    $activity = Activity::query()->where('event', 'logout')->latest()->first();
+
+    expect($activity)->not->toBeNull()
+        ->and($activity->causer_id)->toBe($user->id)
+        ->and($activity->causer->name)->toBe($user->name);
 });

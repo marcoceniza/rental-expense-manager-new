@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import logoDark from '../images/logo.png';
 import logoLight from '../images/logo2.png';
 

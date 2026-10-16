@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { RecurringCategoryOption } from '@/types';
 import BaseButton from '@/components/base/BaseButton.vue';
+import type { RecurringCategoryOption } from '@/types';
 import { X } from 'lucide-vue-next';
 import { computed } from 'vue';
 

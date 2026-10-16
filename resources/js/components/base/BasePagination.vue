@@ -106,9 +106,7 @@ const visiblePages = computed(() => {
         v-if="pagination.last_page > 1"
         class="mt-6 flex items-center justify-between rounded-bl-2xl rounded-br-2xl rounded-tl-none rounded-tr-none border-t border-slate-200 bg-white px-4 py-3"
     >
-        <p class="text-sm text-slate-500">
-            Showing {{ visibleCount }} per page · Page {{ pagination.current_page }} of {{ pagination.last_page }}
-        </p>
+        <p class="text-sm text-slate-500">Showing {{ visibleCount }} per page · Page {{ pagination.current_page }} of {{ pagination.last_page }}</p>
 
         <div class="flex items-center gap-2">
             <button

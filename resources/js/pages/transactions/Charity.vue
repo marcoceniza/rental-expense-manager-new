@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { format, parseISO } from 'date-fns';
-import { ArrowDownRight, ArrowUpRight, Heart, Pencil, Trash2 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
 import CharityModal from '@/components/CharityModal.vue';
 import ConfirmDateChangeModal from '@/components/ConfirmDateChangeModal.vue';
 import ConfirmDelete from '@/components/ConfirmDelete.vue';
 import BasePagination from '@/components/base/BasePagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { SharedData, Category, CharityStats, CharityTransaction } from '@/types';
+import type { Category, CharityStats, CharityTransaction, SharedData } from '@/types';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { format, parseISO } from 'date-fns';
+import { ArrowDownRight, ArrowUpRight, Heart, Pencil, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 defineOptions({
     layout: AppLayout,
@@ -290,17 +290,20 @@ const formatCurrency = (amount: number) => {
                             </td>
 
                             <td class="px-6 py-4">
-                                <span class="text-sm font-bold" :class="{
-                                    'text-emerald-600': t.type === 'income',
-                                    'text-red-600': t.type === 'expense',
-                                    'text-amber-600': t.type === 'liability',
-                                }">
+                                <span
+                                    class="text-sm font-bold"
+                                    :class="{
+                                        'text-emerald-600': t.type === 'income',
+                                        'text-red-600': t.type === 'expense',
+                                        'text-amber-600': t.type === 'liability',
+                                    }"
+                                >
                                     {{ t.type === 'income' ? '+' : '-' }}
                                     {{ formatCurrency(t.amount) }}
                                 </span>
                             </td>
 
-                            <td v-if="isAdmin" class="px-6 py-4 text-sm text-slate-600 text-center">
+                            <td v-if="isAdmin" class="px-6 py-4 text-center text-sm text-slate-600">
                                 {{ t.user?.name || '-' }}
                             </td>
 

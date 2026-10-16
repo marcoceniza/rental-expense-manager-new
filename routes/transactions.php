@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\LogsController;
 use App\Http\Controllers\Transactions\CategoryController;
 use App\Http\Controllers\Transactions\RecurringController;
 use App\Http\Controllers\Transactions\ReportController;
@@ -26,7 +27,6 @@ Route::middleware(['auth', 'user'])->group(function () {
 
     Route::get('/charity', [ReportController::class, 'userCharityReport'])
         ->name('charity');
-
 });
 
 /*
@@ -71,4 +71,7 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'admin'])->group(fun
         ->name('register');
 
     Route::post('/register', [RegisteredUserController::class, 'store']);
+
+    Route::get('/logs', [LogsController::class, 'index'])
+        ->name('logs');
 });

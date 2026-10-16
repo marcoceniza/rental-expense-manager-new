@@ -5,10 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Models\Concerns\CausesActivity;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use CausesActivity, HasFactory, Notifiable;
+
+    public function activitiesAsCauser()
+    {
+        return $this->morphMany(Activity::class, 'causer')->with('user')->latest();
+    }
 
     /**
      * Mass assignable fields
@@ -58,5 +65,10 @@ class User extends Authenticatable
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function activities()
+    {
+        return $this->morphMany(Activity::class, 'causer')->with('user')->latest();
     }
 }

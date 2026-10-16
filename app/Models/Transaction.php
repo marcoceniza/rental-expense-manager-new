@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Transaction extends Model
 {
     use HasFactory, SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'user_id',
@@ -90,5 +93,13 @@ class Transaction extends Model
                 ];
             })
             ->values();
+    }
+
+    protected static function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('transaction')
+            ->logOnlyDirty()
+            ->logOnly(['type', 'amount', 'transaction_date', 'description', 'remarks']);
     }
 }
